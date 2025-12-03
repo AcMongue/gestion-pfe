@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if subject %}Modifier le sujet{% else %}Nouveau sujet{% endif %} - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{% if subject %}edit{% else %}plus-circle{% endif %}"></i>
+                        {% if subject %}Modifier le sujet{% else %}Proposer un nouveau sujet{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="d-flex gap-2 justify-content-end mt-4">
+                            <a href="{% if subject %}{% url 'subjects:detail' subject.pk %}{% else %}{% url 'subjects:my_subjects' %}{% endif %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> {% if subject %}Mettre à jour{% else %}Créer le sujet{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

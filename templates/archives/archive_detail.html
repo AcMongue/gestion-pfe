@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ archive.project.title }} - Archive{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0"><i class="fas fa-archive"></i> Projet Archivé</h4>
+        </div>
+        <div class="card-body">
+            <h3>{{ archive.project.title }}</h3>
+            <hr>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong><i class="fas fa-user"></i> Étudiant:</strong><br>
+                    {{ archive.project.assignment.student.get_full_name }}</p>
+                    
+                    <p><strong><i class="fas fa-user-tie"></i> Encadreur:</strong><br>
+                    {{ archive.project.assignment.subject.supervisor.get_full_name }}</p>
+                    
+                    <p><strong><i class="fas fa-calendar"></i> Année académique:</strong><br>
+                    {{ archive.year }}</p>
+                    
+                    <p><strong><i class="fas fa-clock"></i> Semestre:</strong><br>
+                    {{ archive.get_semester_display }}</p>
+                </div>
+                
+                <div class="col-md-6">
+                    {% if archive.final_grade %}
+                    <p><strong><i class="fas fa-star"></i> Note finale:</strong><br>
+                    <span class="badge bg-primary fs-4">{{ archive.final_grade }}/20</span></p>
+                    {% endif %}
+                    
+                    <p><strong><i class="fas fa-archive"></i> Archivé le:</strong><br>
+                    {{ archive.archived_at|date:"d/m/Y à H:i" }}</p>
+                    
+                    <p><strong><i class="fas fa-user-shield"></i> Archivé par:</strong><br>
+                    {{ archive.archived_by.get_full_name }}</p>
+                    
+                    <p><strong><i class="fas fa-eye"></i> Vues:</strong> {{ archive.views_count }}</p>
+                </div>
+            </div>
+            
+            {% if archive.summary %}
+            <hr>
+            <h5><i class="fas fa-align-left"></i> Résumé</h5>
+            <p>{{ archive.summary }}</p>
+            {% endif %}
+            
+            {% if archive.achievements %}
+            <hr>
+            <h5><i class="fas fa-trophy"></i> Réalisations</h5>
+            <p>{{ archive.achievements }}</p>
+            {% endif %}
+            
+            {% if archive.keywords %}
+            <hr>
+            <p><strong><i class="fas fa-tags"></i> Mots-clés:</strong> {{ archive.keywords }}</p>
+            {% endif %}
+            
+            <hr>
+            <a href="{% url 'archives:list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour aux archives
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

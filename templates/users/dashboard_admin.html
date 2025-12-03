@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tableau de bord Administration - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 bg-light sidebar py-3">
+            <div class="list-group list-group-flush">
+                <a href="{% url 'users:dashboard' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-dashboard"></i> Tableau de bord
+                </a>
+                <a href="/admin/" class="list-group-item list-group-item-action">
+                    <i class="fas fa-users"></i> Utilisateurs
+                </a>
+                <a href="{% url 'subjects:list' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-book"></i> Tous les sujets
+                </a>
+                <a href="{% url 'projects:list' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tasks"></i> Projets
+                </a>
+                <a href="{% url 'defenses:list' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-calendar-alt"></i> Soutenances
+                </a>
+                <a href="{% url 'archives:reports' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-chart-bar"></i> Statistiques
+                </a>
+                <a href="{% url 'users:profile' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-circle"></i> Mon profil
+                </a>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="col-md-9 col-lg-10">
+            <h2 class="mb-4">
+                <i class="fas fa-dashboard"></i> Tableau de bord Administration
+            </h2>
+
+            <!-- Statistiques globales -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-user-graduate"></i> Étudiants
+                            </h5>
+                            <h2 class="mb-0">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-chalkboard-teacher"></i> Encadreurs
+                            </h5>
+                            <h2 class="mb-0">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-book"></i> Sujets
+                            </h5>
+                            <h2 class="mb-0">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-danger">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-calendar-check"></i> Soutenances
+                            </h5>
+                            <h2 class="mb-0">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions administratives -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tools"></i> Actions administratives
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <a href="/admin/users/user/add/" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-user-plus"></i><br>
+                                        Ajouter un utilisateur
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="{% url 'subjects:list' %}" class="btn btn-outline-success w-100">
+                                        <i class="fas fa-check-circle"></i><br>
+                                        Gérer les sujets
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="{% url 'defenses:calendar' %}" class="btn btn-outline-warning w-100">
+                                        <i class="fas fa-calendar-plus"></i><br>
+                                        Planifier soutenances
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="{% url 'archives:generate_report' %}" class="btn btn-outline-info w-100">
+                                        <i class="fas fa-file-export"></i><br>
+                                        Générer rapport
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activités récentes -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history"></i> Activités récentes
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted text-center">
+                                Aucune activité récente.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-warning text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-exclamation-triangle"></i> En attente
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted text-center">
+                                Aucune action en attente.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

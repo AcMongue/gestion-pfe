@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Calendrier des soutenances - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-calendar"></i> Calendrier des soutenances</h2>
+        <a href="{% url 'defenses:list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> Vue liste
+        </a>
+    </div>
+
+    {% if defenses %}
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Date & Heure</th>
+                                <th>Projet</th>
+                                <th>Étudiant</th>
+                                <th>Salle</th>
+                                <th>Jury</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for defense in defenses %}
+                            <tr>
+                                <td>
+                                    <strong>{{ defense.date|date:"d/m/Y" }}</strong><br>
+                                    <small>{{ defense.time|time:"H:i" }} ({{ defense.duration }}min)</small>
+                                </td>
+                                <td>{{ defense.project.title|truncatewords:8 }}</td>
+                                <td>{{ defense.project.assignment.student.get_full_name }}</td>
+                                <td>{{ defense.room }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ defense.jury_members.count }} membre(s)</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'defenses:detail' defense.pk %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i> Détails
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center py-5">
+            <i class="fas fa-calendar-times fa-3x mb-3 d-block"></i>
+            <h4>Aucune soutenance planifiée</h4>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

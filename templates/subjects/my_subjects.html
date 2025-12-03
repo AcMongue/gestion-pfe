@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes sujets - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-book"></i> Mes sujets proposés</h2>
+        <a href="{% url 'subjects:create' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Nouveau sujet
+        </a>
+    </div>
+
+    {% if subjects %}
+        <div class="row">
+            {% for subject in subjects %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow">
+                    <div class="card-header bg-{% if subject.status == 'published' %}success{% elif subject.status == 'assigned' %}info{% elif subject.status == 'archived' %}secondary{% else %}warning{% endif %} text-white">
+                        <h5 class="mb-0">{{ subject.title }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <span class="badge bg-info">{{ subject.get_level_display }}</span>
+                            <span class="badge bg-secondary">{{ subject.get_domain_display }}</span>
+                        </div>
+                        
+                        <p><strong>Statut:</strong> 
+                            <span class="badge bg-{% if subject.status == 'published' %}success{% elif subject.status == 'assigned' %}info{% elif subject.status == 'archived' %}secondary{% else %}warning{% endif %}">
+                                {{ subject.get_status_display }}
+                            </span>
+                        </p>
+                        
+                        <p><strong>Places:</strong> {{ subject.get_assigned_students_count }}/{{ subject.max_students }}</p>
+                        
+                        <p><strong>Candidatures en attente:</strong> 
+                            <span class="badge bg-warning">{{ subject.applications_count }}</span>
+                        </p>
+                        
+                        <p class="small text-muted">Créé le {{ subject.created_at|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <div class="d-flex gap-1 flex-wrap">
+                            <a href="{% url 'subjects:detail' subject.pk %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'subjects:update' subject.pk %}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'subjects:subject_applications' subject.pk %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-users"></i> Candidatures ({{ subject.applications_count }})
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle"></i> Vous n'avez encore proposé aucun sujet.
+            <br><br>
+            <a href="{% url 'subjects:create' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Proposer votre premier sujet
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

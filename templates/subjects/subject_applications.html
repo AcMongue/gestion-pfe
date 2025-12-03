@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Candidatures - {{ subject.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'subjects:my_subjects' %}">Mes sujets</a></li>
+            <li class="breadcrumb-item active">Candidatures</li>
+        </ol>
+    </nav>
+
+    <h2 class="mb-4">
+        <i class="fas fa-users"></i> Candidatures pour: {{ subject.title }}
+    </h2>
+
+    {% if applications %}
+        <div class="row">
+            {% for application in applications %}
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-{% if application.status == 'accepted' %}success{% elif application.status == 'rejected' %}danger{% elif application.status == 'withdrawn' %}secondary{% else %}primary{% endif %} text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ application.student.get_full_name }}</h5>
+                            <span class="badge bg-light text-dark">Priorité: {{ application.priority }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Matricule:</strong> {{ application.student.matricule }}</p>
+                        <p><strong>Niveau:</strong> {{ application.student.get_level_display }}</p>
+                        <p><strong>Filière:</strong> {{ application.student.filiere }}</p>
+                        <p><strong>Email:</strong> {{ application.student.email }}</p>
+                        <p><strong>Date de candidature:</strong> {{ application.created_at|date:"d/m/Y à H:i" }}</p>
+                        <p><strong>Statut:</strong> 
+                            <span class="badge bg-{% if application.status == 'accepted' %}success{% elif application.status == 'rejected' %}danger{% elif application.status == 'withdrawn' %}secondary{% else %}warning{% endif %}">
+                                {{ application.get_status_display }}
+                            </span>
+                        </p>
+                        
+                        <hr>
+                        <h6>Lettre de motivation:</h6>
+                        <p class="text-muted" style="max-height: 200px; overflow-y: auto;">
+                            {{ application.motivation_letter|linebreaks }}
+                        </p>
+                        
+                        {% if application.cv_file %}
+                        <p>
+                            <a href="{{ application.cv_file.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-file-pdf"></i> Télécharger le CV
+                            </a>
+                        </p>
+                        {% endif %}
+                        
+                        {% if application.status == 'pending' %}
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'subjects:application_review' application.pk %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-edit"></i> Évaluer
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle"></i> Aucune candidature pour ce sujet.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

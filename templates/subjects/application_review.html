@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Évaluer la candidature{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clipboard-check"></i> Évaluer la candidature
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-light">
+                        <h5>{{ application.student.get_full_name }}</h5>
+                        <p class="mb-0"><strong>Sujet:</strong> {{ application.subject.title }}</p>
+                    </div>
+
+                    <h6>Lettre de motivation:</h6>
+                    <div class="bg-light p-3 mb-3" style="max-height: 300px; overflow-y: auto;">
+                        {{ application.motivation_letter|linebreaks }}
+                    </div>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'subjects:subject_applications' application.subject.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer l'évaluation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

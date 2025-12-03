@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load subject_filters %}
+
+{% block title %}{{ subject.title }} - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'subjects:list' %}">Sujets</a></li>
+            <li class="breadcrumb-item active">{{ subject.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{{ subject.title }}</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Badges -->
+                    <div class="mb-3">
+                        <span class="badge bg-info">{{ subject.get_level_display }}</span>
+                        <span class="badge bg-secondary">{{ subject.get_domain_display }}</span>
+                        <span class="badge bg-success">{{ subject.get_type_display }}</span>
+                        <span class="badge bg-{% if subject.has_available_slots %}success{% else %}danger{% endif %}">
+                            {{ subject.get_assigned_students_count }}/{{ subject.max_students }} place(s)
+                        </span>
+                    </div>
+
+                    <!-- Description -->
+                    <h5 class="text-primary">Description</h5>
+                    <p>{{ subject.description|linebreaks }}</p>
+
+                    {% if subject.objectives %}
+                    <hr>
+                    <h5 class="text-primary">Objectifs</h5>
+                    <p>{{ subject.objectives|linebreaks }}</p>
+                    {% endif %}
+
+                    {% if subject.prerequisites %}
+                    <hr>
+                    <h5 class="text-primary">Prérequis</h5>
+                    <p>{{ subject.prerequisites|linebreaks }}</p>
+                    {% endif %}
+
+                    {% if subject.keywords %}
+                    <hr>
+                    <h5 class="text-primary">Mots-clés</h5>
+                    <p>
+                        <span class="badge bg-light text-dark">{{ subject.keywords }}</span>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Encadrement -->
+            <div class="card shadow mb-3">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-tie"></i> Encadrement</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Encadreur principal:</strong><br>
+                        {{ subject.supervisor.get_full_name }}<br>
+                        {% if subject.supervisor.specialite %}
+                        <small class="text-muted">{{ subject.supervisor.specialite }}</small>
+                        {% endif %}
+                    </p>
+                    {% if subject.co_supervisor %}
+                    <p class="mb-0">
+                        <strong>Co-encadreur:</strong><br>
+                        {{ subject.co_supervisor.get_full_name }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if user.is_student %}
+                        {% if has_assignment %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> Vous avez déjà un sujet affecté.
+                            </div>
+                        {% elif has_applied %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> Vous avez déjà candidaté à ce sujet.
+                                <br>
+                                <strong>Statut:</strong> {{ user_application.get_status_display }}
+                            </div>
+                            {% if user_application.status == 'pending' %}
+                            <a href="{% url 'subjects:application_withdraw' user_application.pk %}" class="btn btn-sm btn-danger w-100">
+                                <i class="fas fa-times"></i> Retirer ma candidature
+                            </a>
+                            {% endif %}
+                        {% elif subject.has_available_slots %}
+                            <a href="{% url 'subjects:apply' subject.pk %}" class="btn btn-primary w-100 mb-2">
+                                <i class="fas fa-paper-plane"></i> Candidater
+                            </a>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle"></i> Plus de places disponibles.
+                            </div>
+                        {% endif %}
+                    {% elif user.is_supervisor and subject.supervisor == user %}
+                        <a href="{% url 'subjects:update' subject.pk %}" class="btn btn-warning w-100 mb-2">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        <a href="{% url 'subjects:subject_applications' subject.pk %}" class="btn btn-info w-100 mb-2">
+                            <i class="fas fa-list"></i> Voir les candidatures
+                        </a>
+                        <a href="{% url 'subjects:delete' subject.pk %}" class="btn btn-danger w-100">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

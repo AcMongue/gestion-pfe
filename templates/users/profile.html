@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mon Profil - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" alt="Avatar" class="rounded-circle mb-3" width="150" height="150">
+                    {% else %}
+                        <i class="fas fa-user-circle fa-7x text-muted mb-3"></i>
+                    {% endif %}
+                    
+                    <h4>{{ user.get_full_name }}</h4>
+                    <p class="text-muted">{{ user.get_role_display }}</p>
+                    
+                    {% if user.is_student %}
+                        <p>
+                            <span class="badge bg-info">{{ user.level }}</span>
+                            <span class="badge bg-secondary">{{ user.filiere }}</span>
+                        </p>
+                        <p class="mb-0"><strong>Matricule:</strong> {{ user.matricule }}</p>
+                    {% elif user.is_supervisor %}
+                        <p>
+                            <span class="badge bg-success">{{ user.grade }}</span>
+                        </p>
+                        <p class="mb-0"><strong>Spécialité:</strong> {{ user.specialite }}</p>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <a href="{% url 'users:profile_edit' %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Modifier le profil
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Informations du profil
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary">Informations personnelles</h6>
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="200">Nom d'utilisateur:</th>
+                            <td>{{ user.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ user.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Téléphone:</th>
+                            <td>{{ user.phone|default:"Non renseigné" }}</td>
+                        </tr>
+                        {% if user.bio %}
+                        <tr>
+                            <th>Biographie:</th>
+                            <td>{{ user.bio }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+
+                    <hr>
+
+                    <h6 class="text-primary">Informations complémentaires</h6>
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="200">Date de naissance:</th>
+                            <td>{{ profile.date_of_birth|default:"Non renseigné" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Adresse:</th>
+                            <td>{{ profile.address|default:"Non renseigné" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Ville:</th>
+                            <td>{{ profile.city|default:"Non renseigné" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Pays:</th>
+                            <td>{{ profile.country }}</td>
+                        </tr>
+                    </table>
+
+                    {% if profile.linkedin_url or profile.github_url or profile.website %}
+                    <hr>
+                    <h6 class="text-primary">Réseaux sociaux</h6>
+                    <div class="d-flex gap-2">
+                        {% if profile.linkedin_url %}
+                        <a href="{{ profile.linkedin_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="fab fa-linkedin"></i> LinkedIn
+                        </a>
+                        {% endif %}
+                        {% if profile.github_url %}
+                        <a href="{{ profile.github_url }}" target="_blank" class="btn btn-outline-dark btn-sm">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                        {% endif %}
+                        {% if profile.website %}
+                        <a href="{{ profile.website }}" target="_blank" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-globe"></i> Site web
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <h6 class="text-primary">Paramètres de notification</h6>
+                    <p>
+                        <i class="fas fa-envelope {% if profile.email_notifications %}text-success{% else %}text-muted{% endif %}"></i>
+                        Notifications par email: <strong>{% if profile.email_notifications %}Activées{% else %}Désactivées{% endif %}</strong>
+                    </p>
+                    <p>
+                        <i class="fas fa-sms {% if profile.sms_notifications %}text-success{% else %}text-muted{% endif %}"></i>
+                        Notifications par SMS: <strong>{% if profile.sms_notifications %}Activées{% else %}Désactivées{% endif %}</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

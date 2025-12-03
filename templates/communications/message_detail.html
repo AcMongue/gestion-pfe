@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ message.subject }} - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-envelope"></i> Messages</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'communications:inbox' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-inbox"></i> Boîte de réception
+                    </a>
+                    <a href="{% url 'communications:sent' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-paper-plane"></i> Messages envoyés
+                    </a>
+                    <a href="{% url 'communications:compose' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-edit"></i> Nouveau message
+                    </a>
+                    <a href="{% url 'communications:notifications' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-bell"></i> Notifications
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <!-- Message principal -->
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{{ message.subject }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <strong>De:</strong> {{ message.sender.get_full_name }}<br>
+                            <strong>À:</strong> {{ message.recipient.get_full_name }}<br>
+                            <strong>Date:</strong> {{ message.created_at|date:"d/m/Y H:i" }}
+                        </div>
+                        <div>
+                            {% if message.attachment %}
+                            <a href="{{ message.attachment.url }}" class="btn btn-sm btn-info" download>
+                                <i class="fas fa-paperclip"></i> Télécharger la pièce jointe
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'communications:delete_message' message.pk %}" 
+                               class="btn btn-sm btn-danger"
+                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce message ?')">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </a>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="message-content">
+                        {{ message.content|linebreaks }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Réponses -->
+            {% if replies %}
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-reply"></i> Réponses ({{ replies.count }})</h6>
+                </div>
+                <div class="card-body">
+                    {% for reply in replies %}
+                    <div class="border-start border-primary ps-3 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ reply.sender.get_full_name }}</strong>
+                            <small class="text-muted">{{ reply.created_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        <p class="mb-0 mt-2">{{ reply.content|linebreaks }}</p>
+                        {% if reply.attachment %}
+                        <a href="{{ reply.attachment.url }}" class="btn btn-sm btn-outline-info mt-2" download>
+                            <i class="fas fa-paperclip"></i> Pièce jointe
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Formulaire de réponse -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-reply"></i> Répondre</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ reply_form|crispy }}
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-reply"></i> Envoyer la réponse
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

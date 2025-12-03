@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Accueil - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    Plateforme de Gestion des PFE
+                </h1>
+                <p class="lead mb-4">
+                    Gérez efficacement vos projets de fin d'études, de la proposition du sujet jusqu'à la soutenance finale.
+                </p>
+                <div class="d-grid gap-2 d-md-flex">
+                    <a href="{% url 'users:register' %}" class="btn btn-light btn-lg px-4">
+                        <i class="fas fa-user-plus"></i> S'inscrire
+                    </a>
+                    <a href="{% url 'users:login' %}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="fas fa-sign-in-alt"></i> Se connecter
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-graduation-cap" style="font-size: 200px; opacity: 0.2;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <!-- Fonctionnalités principales -->
+    <section class="mb-5">
+        <h2 class="text-center mb-5">Fonctionnalités Principales</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Gestion des Utilisateurs</h5>
+                        <p class="card-text">
+                            Inscription et authentification sécurisées avec profils personnalisés par rôle.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Catalogue de Sujets</h5>
+                        <p class="card-text">
+                            Proposition et consultation de sujets avec système d'affectation automatisé.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Suivi des Projets</h5>
+                        <p class="card-text">
+                            Tableau de bord avec indicateurs de progression et planification par jalons.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-comments fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Communication</h5>
+                        <p class="card-text">
+                            Messagerie interne dédiée avec système de notifications intelligentes.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-check fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Planification des Soutenances</h5>
+                        <p class="card-text">
+                            Génération automatique du planning et constitution des jurys.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="fas fa-archive fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Archivage</h5>
+                        <p class="card-text">
+                            Bibliothèque numérique avec moteur de recherche multicritères.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Acteurs du système -->
+    <section class="bg-light p-5 rounded">
+        <h2 class="text-center mb-5">Qui Peut Utiliser la Plateforme ?</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <i class="fas fa-user-graduate fa-3x text-primary mb-3"></i>
+                    <h5>Étudiants</h5>
+                    <p class="small">
+                        Choisir un sujet, déposer des livrables et consulter les informations de soutenance.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <i class="fas fa-chalkboard-teacher fa-3x text-success mb-3"></i>
+                    <h5>Encadreurs</h5>
+                    <p class="small">
+                        Proposer des sujets et suivre l'avancement des étudiants.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <i class="fas fa-user-tie fa-3x text-info mb-3"></i>
+                    <h5>Administration</h5>
+                    <p class="small">
+                        Valider les affectations et planifier les soutenances.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <i class="fas fa-gavel fa-3x text-warning mb-3"></i>
+                    <h5>Jury</h5>
+                    <p class="small">
+                        Évaluer les mémoires et participer aux soutenances.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Boîte de réception - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-envelope"></i> Messages</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'communications:inbox' %}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-inbox"></i> Boîte de réception
+                        {% if unread_count > 0 %}
+                        <span class="badge bg-danger float-end">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'communications:sent' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-paper-plane"></i> Messages envoyés
+                    </a>
+                    <a href="{% url 'communications:compose' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-edit"></i> Nouveau message
+                    </a>
+                    <a href="{% url 'communications:notifications' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-bell"></i> Notifications
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-inbox"></i> Boîte de réception</h5>
+                    <a href="{% url 'communications:compose' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-edit"></i> Nouveau message
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Expéditeur</th>
+                                        <th>Objet</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for message in messages %}
+                                    <tr class="{% if not message.is_read %}table-info{% endif %}">
+                                        <td>
+                                            {% if not message.is_read %}<strong>{% endif %}
+                                            {{ message.sender.get_full_name }}
+                                            {% if not message.is_read %}</strong>{% endif %}
+                                        </td>
+                                        <td>
+                                            {% if not message.is_read %}<strong>{% endif %}
+                                            {{ message.subject }}
+                                            {% if not message.is_read %}</strong>{% endif %}
+                                        </td>
+                                        <td>{{ message.created_at|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            <a href="{% url 'communications:message_detail' message.pk %}" 
+                                               class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye"></i> Lire
+                                            </a>
+                                            <a href="{% url 'communications:delete_message' message.pk %}" 
+                                               class="btn btn-sm btn-danger"
+                                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce message ?')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-4">
+                            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                            Aucun message reçu pour le moment.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

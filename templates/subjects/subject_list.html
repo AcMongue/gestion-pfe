@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Catalogue des sujets - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-book"></i> Catalogue des sujets</h2>
+        {% if user.is_supervisor %}
+        <a href="{% url 'subjects:create' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Proposer un sujet
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filtres -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    {{ filter_form.search }}
+                </div>
+                <div class="col-md-2">
+                    {{ filter_form.level }}
+                </div>
+                <div class="col-md-3">
+                    {{ filter_form.domain }}
+                </div>
+                <div class="col-md-2">
+                    {{ filter_form.type }}
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Résultats -->
+    <div class="mb-3">
+        <p class="text-muted">{{ total_count }} sujet(s) trouvé(s)</p>
+    </div>
+
+    {% if subjects %}
+        <div class="row">
+            {% for subject in subjects %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">{{ subject.title }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <span class="badge bg-info">{{ subject.get_level_display }}</span>
+                            <span class="badge bg-secondary">{{ subject.get_domain_display }}</span>
+                            <span class="badge bg-success">{{ subject.get_type_display }}</span>
+                        </div>
+                        
+                        <p class="card-text">
+                            {{ subject.description|truncatewords:30 }}
+                        </p>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-user"></i> {{ subject.supervisor.get_full_name }}
+                            </small>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-users"></i> 
+                                {{ subject.get_assigned_students_count }}/{{ subject.max_students }} place(s)
+                            </small>
+                        </div>
+                        
+                        {% if subject.keywords %}
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-tags"></i> {{ subject.keywords }}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-white">
+                        <a href="{% url 'subjects:detail' subject.pk %}" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="fas fa-eye"></i> Voir les détails
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle"></i> Aucun sujet disponible pour le moment.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
