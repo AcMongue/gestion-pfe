@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirmer l'affectation - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-check"></i> Confirmer l'affectation
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Attention :</strong> Cette action affectera définitivement ce sujet à l'étudiant 
+                        et rejettera automatiquement toutes les autres candidatures pour ce sujet.
+                    </div>
+
+                    <h5 class="mb-3">Détails de l'affectation</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Étudiant :</div>
+                        <div class="col-md-8">
+                            {{ application.student.get_full_name }}
+                            <br>
+                            <small class="text-muted">{{ application.student.email }}</small>
+                            {% if application.student.level %}
+                                <br>
+                                <span class="badge bg-info">{{ application.student.get_level_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Sujet :</div>
+                        <div class="col-md-8">
+                            <strong>{{ application.subject.title }}</strong>
+                            <br>
+                            <small class="text-muted">{{ application.subject.type }} - {{ application.subject.get_level_display }}</small>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Encadreur :</div>
+                        <div class="col-md-8">
+                            {{ application.subject.supervisor.get_full_name }}
+                            {% if application.subject.co_supervisor %}
+                                <br>
+                                <small>Co-encadreur : {{ application.subject.co_supervisor.get_full_name }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Candidature :</div>
+                        <div class="col-md-8">
+                            Déposée le {{ application.created_at|date:"d/m/Y à H:i" }}
+                            <br>
+                            <span class="badge bg-success">Acceptée</span>
+                        </div>
+                    </div>
+
+                    {% if application.motivation %}
+                    <div class="mb-3">
+                        <strong>Motivation de l'étudiant :</strong>
+                        <div class="border rounded p-3 mt-2 bg-light">
+                            {{ application.motivation }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes (optionnel)</label>
+                            <textarea name="notes" id="notes" class="form-control" rows="3" 
+                                      placeholder="Notes ou remarques sur cette affectation..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'subjects:assignments_manage' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Confirmer l'affectation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

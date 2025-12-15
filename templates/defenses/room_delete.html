@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Supprimer la salle - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Supprimer la salle
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>Attention !</strong> Cette action est irréversible.
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Informations sur la salle :</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="40%">Nom :</th>
+                                <td><strong>{{ room.name }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Bâtiment :</th>
+                                <td>{{ room.building }}</td>
+                            </tr>
+                            <tr>
+                                <th>Filière :</th>
+                                <td>{{ room.get_filiere_display }}</td>
+                            </tr>
+                            <tr>
+                                <th>Capacité :</th>
+                                <td>{{ room.capacity }} places</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    {% if defenses_count > 0 %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-ban"></i>
+                            <strong>Impossible de supprimer cette salle</strong><br>
+                            Cette salle est utilisée par <strong>{{ defenses_count }} soutenance(s)</strong> planifiée(s).
+                            <br><br>
+                            Vous devez d'abord :
+                            <ol class="mb-0">
+                                <li>Modifier ou annuler les soutenances concernées</li>
+                                <li>Attribuer une autre salle pour ces soutenances</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <a href="{% url 'defenses:room_list' %}" class="btn btn-primary">
+                                <i class="fas fa-arrow-left"></i> Retour à la liste
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Aucune soutenance n'utilise cette salle. Vous pouvez la supprimer en toute sécurité.
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <p class="text-center">
+                                Êtes-vous sûr de vouloir supprimer la salle <strong>{{ room.name }}</strong> ?
+                            </p>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Oui, supprimer définitivement
+                                </button>
+                                <a href="{% url 'defenses:room_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Non, annuler
+                                </a>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0;
+}
+</style>
+{% endblock %}

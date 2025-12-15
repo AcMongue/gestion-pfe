@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Loader</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #004674;
+            --primary-light: #0062a3;
+        }
+        
+        /* Page Loader */
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 300ms ease-out;
+        }
+
+        .page-loader.fade-out {
+            opacity: 0;
+        }
+
+        .loader-content {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .spinner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5rem;
+            color: white;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .loader-text {
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            margin: 0;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Page Content */
+        .page-content {
+            opacity: 0;
+            transition: opacity 400ms ease-out;
+            padding: 2rem;
+        }
+
+        .page-content.fade-in {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Page Loader -->
+    <div id="page-loader" class="page-loader">
+        <div class="loader-content">
+            <div class="spinner-wrapper">
+                <div class="spinner"></div>
+                <i class="fas fa-graduation-cap loader-icon"></i>
+            </div>
+            <p class="loader-text">Chargement...</p>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div id="page-content" class="page-content">
+        <h1>Test du Loader</h1>
+        <p>Si vous voyez ce texte, le loader a fonctionné !</p>
+        <p>Le loader devrait avoir disparu après quelques secondes.</p>
+    </div>
+
+    <script>
+        // Hide loader when page is fully loaded
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('page-loader');
+            const content = document.getElementById('page-content');
+            
+            setTimeout(function() {
+                loader.classList.add('fade-out');
+                content.classList.add('fade-in');
+                
+                setTimeout(function() {
+                    loader.style.display = 'none';
+                }, 300);
+            }, 2000); // 2 secondes pour bien voir l'animation
+        });
+    </script>
+</body>
+</html>

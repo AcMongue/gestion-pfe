@@ -17,7 +17,86 @@
                 <div class="card-body">
                     <form method="post" novalidate>
                         {% csrf_token %}
-                        {{ form|crispy }}
+                        
+                        <!-- Informations de base -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-info-circle"></i> Informations générales
+                            </h5>
+                            {{ form.title|as_crispy_field }}
+                            {{ form.description|as_crispy_field }}
+                            {{ form.objectives|as_crispy_field }}
+                            {{ form.prerequisites|as_crispy_field }}
+                            {{ form.keywords|as_crispy_field }}
+                        </div>
+                        
+                        <!-- Classification -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-tags"></i> Classification
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.filiere|as_crispy_field }}
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle"></i> Héritée automatiquement de votre département
+                                    </small>
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.level|as_crispy_field }}
+                                </div>
+                            </div>
+                            {{ form.type|as_crispy_field }}
+                        </div>
+                        
+                        <!-- Projet multidisciplinaire -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-users"></i> Projet multidisciplinaire
+                            </h5>
+                            <div class="alert alert-info">
+                                <i class="fas fa-lightbulb"></i>
+                                <strong>Projet multidisciplinaire :</strong> Cochez cette case si votre sujet peut intéresser des étudiants d'autres filières. 
+                                Sélectionnez ensuite les filières concernées.
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.is_interdisciplinary|as_crispy_field }}
+                            </div>
+                            
+                            <div id="additionalFilieresSection" style="display: none;">
+                                <label class="form-label">Filières additionnelles pouvant candidater</label>
+                                {{ form.additional_filieres }}
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle"></i> Les étudiants de ces filières verront également votre sujet dans leur catalogue
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Encadrement -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-user-tie"></i> Encadrement
+                            </h5>
+                            {{ form.co_supervisor|as_crispy_field }}
+                            {{ form.max_students|as_crispy_field }}
+                        </div>
+                        
+                        <!-- Disponibilité -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-calendar"></i> Disponibilité
+                            </h5>
+                            {{ form.status|as_crispy_field }}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {{ form.available_from|as_crispy_field }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.available_until|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
                         
                         <div class="d-flex gap-2 justify-content-end mt-4">
                             <a href="{% if subject %}{% url 'subjects:detail' subject.pk %}{% else %}{% url 'subjects:my_subjects' %}{% endif %}" class="btn btn-secondary">
@@ -33,4 +112,32 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Gestion de l'affichage des filières additionnelles
+    document.addEventListener('DOMContentLoaded', function() {
+        const interdisciplinaryCheckbox = document.getElementById('id_is_interdisciplinary');
+        const additionalFilieresSection = document.getElementById('additionalFilieresSection');
+        
+        function toggleAdditionalFilieres() {
+            if (interdisciplinaryCheckbox && additionalFilieresSection) {
+                if (interdisciplinaryCheckbox.checked) {
+                    additionalFilieresSection.style.display = 'block';
+                } else {
+                    additionalFilieresSection.style.display = 'none';
+                }
+            }
+        }
+        
+        // Initialiser l'affichage au chargement
+        toggleAdditionalFilieres();
+        
+        // Écouter les changements
+        if (interdisciplinaryCheckbox) {
+            interdisciplinaryCheckbox.addEventListener('change', toggleAdditionalFilieres);
+        }
+    });
+</script>
 {% endblock %}

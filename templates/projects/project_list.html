@@ -1,15 +1,197 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Mes Projets - Gestion PFE{% endblock %}
+{% block title %}{% if is_global_view %}Tous les Projets{% else %}Mes Projets{% endif %} - Gestion PFE{% endblock %}
 
 {% block content %}
-<div class="container my-4">
+<div class="container-fluid my-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-project-diagram"></i> Mes Projets</h2>
+        <h2>
+            <i class="fas fa-project-diagram"></i> 
+            {% if is_global_view %}Tous les Projets{% else %}Mes Projets{% endif %}
+        </h2>
+        <a href="{% url 'users:dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
     </div>
 
+    {% if is_global_view %}
+    <!-- Statistiques globales (Admin) -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body text-center">
+                    <h3>{{ total_projects }}</h3>
+                    <p class="mb-0">Projets total</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body text-center">
+                    <h3>{{ projects_by_status.in_progress }}</h3>
+                    <p class="mb-0">En cours</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body text-center">
+                    <h3>{{ projects_with_defense }}</h3>
+                    <p class="mb-0">Avec soutenance</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body text-center">
+                    <h3>{{ projects_without_defense }}</h3>
+                    <p class="mb-0">Sans soutenance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres (Admin) -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Filtres</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Statut</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>En attente</option>
+                        <option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>En cours</option>
+                        <option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Terminé</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="supervisor" class="form-label">Encadreur</label>
+                    <select name="supervisor" id="supervisor" class="form-select">
+                        <option value="">Tous les encadreurs</option>
+                        {% for supervisor in supervisors %}
+                        <option value="{{ supervisor.pk }}" {% if selected_supervisor == supervisor.pk|stringformat:'s' %}selected{% endif %}>
+                            {{ supervisor.get_full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search"></i> Filtrer
+                    </button>
+                    <a href="{% url 'projects:list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
     {% if projects %}
+        {% if is_global_view %}
+        <!-- Vue tableau pour admin -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-list"></i> Liste des projets
+                    <span class="badge bg-light text-dark ms-2">{{ projects|length }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Titre</th>
+                                <th>Étudiant</th>
+                                <th>Encadreur</th>
+                                <th>Statut</th>
+                                <th>Progrès</th>
+                                <th>Soutenance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr>
+                                <td>
+                                    <strong>{{ project.title|truncatewords:6 }}</strong><br>
+                                    <small class="text-muted">Créé le {{ project.created_at|date:"d/m/Y" }}</small>
+                                </td>
+                                <td>
+                                    {{ project.assignment.student.get_full_name }}<br>
+                                    <small class="text-muted">{{ project.assignment.student.level }}</small>
+                                </td>
+                                <td>{{ project.assignment.subject.supervisor.get_full_name }}</td>
+                                <td>
+                                    {% if project.status == 'pending' %}
+                                        <span class="badge bg-warning text-dark">En attente</span>
+                                    {% elif project.status == 'in_progress' %}
+                                        <span class="badge bg-info">En cours</span>
+                                    {% elif project.status == 'completed' %}
+                                        <span class="badge bg-success">Terminé</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ project.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 20px; min-width: 100px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ project.progress_percentage }}%"
+                                             aria-valuenow="{{ project.progress_percentage }}" 
+                                             aria-valuemin="0" aria-valuemax="100">
+                                            {{ project.progress_percentage }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if project.defense %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Planifiée
+                                        </span><br>
+                                        <small>{{ project.defense.date|date:"d/m/Y" }}</small>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-clock"></i> Non planifiée
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'projects:detail' project.pk %}" 
+                                           class="btn btn-outline-primary"
+                                           title="Voir les détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if not project.defense %}
+                                        <a href="{% url 'defenses:create' project.pk %}" 
+                                           class="btn btn-outline-success"
+                                           title="Planifier soutenance">
+                                            <i class="fas fa-calendar-plus"></i>
+                                        </a>
+                                        {% else %}
+                                        <a href="{% url 'defenses:detail' project.defense.pk %}" 
+                                           class="btn btn-outline-info"
+                                           title="Voir soutenance">
+                                            <i class="fas fa-calendar-check"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Vue cards pour étudiant/encadreur -->
         <div class="row">
             {% for project in projects %}
             <div class="col-md-6 mb-4">
@@ -43,9 +225,15 @@
             </div>
             {% endfor %}
         </div>
+        {% endif %}
     {% else %}
         <div class="alert alert-info">
-            <i class="fas fa-info-circle"></i> Aucun projet en cours.
+            <i class="fas fa-info-circle"></i> 
+            {% if is_global_view %}
+                Aucun projet dans le système pour le moment.
+            {% else %}
+                Aucun projet en cours.
+            {% endif %}
         </div>
     {% endif %}
 </div>

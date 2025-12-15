@@ -23,7 +23,7 @@
                     <!-- Badges -->
                     <div class="mb-3">
                         <span class="badge bg-info">{{ subject.get_level_display }}</span>
-                        <span class="badge bg-secondary">{{ subject.get_domain_display }}</span>
+                        <span class="badge bg-secondary">{{ subject.get_filiere_display }}</span>
                         <span class="badge bg-success">{{ subject.get_type_display }}</span>
                         <span class="badge bg-{% if subject.has_available_slots %}success{% else %}danger{% endif %}">
                             {{ subject.get_assigned_students_count }}/{{ subject.max_students }} place(s)
@@ -111,7 +111,7 @@
                                 <i class="fas fa-exclamation-triangle"></i> Plus de places disponibles.
                             </div>
                         {% endif %}
-                    {% elif user.is_supervisor and subject.supervisor == user %}
+                    {% elif user.is_teacher and subject.supervisor == user %}
                         <a href="{% url 'subjects:update' subject.pk %}" class="btn btn-warning w-100 mb-2">
                             <i class="fas fa-edit"></i> Modifier
                         </a>

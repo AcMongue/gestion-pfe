@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Profil de {{ viewed_user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{% url 'users:user_list' %}" class="btn btn-outline-secondary mb-3">
+                <i class="bi bi-arrow-left"></i> Retour à la liste
+            </a>
+            <h1 class="h3 mb-0">Profil de {{ viewed_user.get_full_name }}</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="Avatar" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px;">
+                            <span class="text-white h1 mb-0">{{ viewed_user.first_name.0 }}{{ viewed_user.last_name.0 }}</span>
+                        </div>
+                    {% endif %}
+                    <h4>{{ viewed_user.get_full_name }}</h4>
+                    <p class="text-muted">{{ viewed_user.get_role_display }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Informations personnelles</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Email:</div>
+                        <div class="col-sm-8">{{ viewed_user.email }}</div>
+                    </div>
+                    
+                    {% if profile.phone %}
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Téléphone:</div>
+                        <div class="col-sm-8">{{ profile.phone }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if viewed_user.is_student and profile.level %}
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Niveau:</div>
+                        <div class="col-sm-8">{{ profile.get_level_display }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if profile.bio %}
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Bio:</div>
+                        <div class="col-sm-8">{{ profile.bio }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Inscription:</div>
+                        <div class="col-sm-8">{{ viewed_user.date_joined|date:"d/m/Y" }}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted">Dernière connexion:</div>
+                        <div class="col-sm-8">
+                            {% if viewed_user.last_login %}
+                                {{ viewed_user.last_login|date:"d/m/Y H:i" }}
+                            {% else %}
+                                <span class="text-muted">Jamais</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

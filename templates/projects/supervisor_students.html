@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Étudiants{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-3">
+                <i class="fas fa-users"></i> Mes Étudiants Encadrés
+            </h1>
+            <p class="text-muted">Suivi et gestion de vos étudiants en PFE</p>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Étudiants</h6>
+                    <h3 class="mb-0">{{ students_count }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Projets Actifs</h6>
+                    <h3 class="mb-0">{{ active_projects_count }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6 class="card-title">En Attente</h6>
+                    <h3 class="mb-0">{{ pending_items_count }}</h3>
+                    <small>Jalons & Livrables</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Progression Moyenne</h6>
+                    <h3 class="mb-0">{{ average_progress|floatformat:0 }}%</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertes -->
+    {% if delayed_milestones or pending_deliverables %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> <strong>Actions requises:</strong>
+                {% if delayed_milestones %}
+                    <span class="badge bg-danger">{{ delayed_milestones }} jalon(s) en retard</span>
+                {% endif %}
+                {% if pending_deliverables %}
+                    <span class="badge bg-warning text-dark">{{ pending_deliverables }} livrable(s) à réviser</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Liste des étudiants -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list"></i> Liste des étudiants
+                        </h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="toggleView('cards')">
+                                <i class="fas fa-th"></i> Cartes
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="toggleView('table')">
+                                <i class="fas fa-table"></i> Tableau
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if projects %}
+                        <!-- Vue Tableau (par défaut) -->
+                        <div id="tableView" class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Étudiant</th>
+                                        <th>Sujet du Projet</th>
+                                        <th style="width: 200px;">Progression</th>
+                                        <th>Jalons</th>
+                                        <th>Livrables</th>
+                                        <th>Statut</th>
+                                        <th>Dernière activité</th>
+                                        <th style="width: 200px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for project in projects %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle me-2">
+                                                    {{ project.assignment.student.get_full_name|slice:":1" }}
+                                                </div>
+                                                <div>
+                                                    <strong>{{ project.assignment.student.get_full_name }}</strong><br>
+                                                    <small class="text-muted">{{ project.assignment.student.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong>{{ project.title }}</strong><br>
+                                            <small class="text-muted">{{ project.assignment.subject.category }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 25px;">
+                                                <div class="progress-bar {% if project.progress < 30 %}bg-danger{% elif project.progress < 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ project.progress }}%" 
+                                                     aria-valuenow="{{ project.progress }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ project.progress }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">
+                                                {{ project.validated_milestones_count }}/{{ project.milestones.count }}
+                                            </span>
+                                            {% if project.milestones_pending %}
+                                                <i class="fas fa-clock text-warning" title="Jalons en attente"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                {{ project.approved_deliverables_count }}/{{ project.deliverables.count }}
+                                            </span>
+                                            {% if project.deliverables_pending %}
+                                                <i class="fas fa-exclamation-circle text-danger" title="Livrables à réviser"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ project.status_badge_class }}">
+                                                {{ project.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ project.updated_at|timesince }} ago
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{% url 'projects:supervisor_student_detail' project.assignment.student.id %}" 
+                                                   class="btn btn-outline-primary" 
+                                                   title="Voir le détail">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'projects:detail' project.pk %}" 
+                                                   class="btn btn-outline-info" 
+                                                   title="Projet">
+                                                    <i class="fas fa-folder-open"></i>
+                                                </a>
+                                                <a href="{% url 'communications:compose' %}?recipient={{ project.assignment.student.id }}" 
+                                                   class="btn btn-outline-success" 
+                                                   title="Messages">
+                                                    <i class="fas fa-comments"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Vue Cartes (cachée par défaut) -->
+                        <div id="cardsView" class="row d-none">
+                            {% for project in projects %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="avatar-circle me-3">
+                                                {{ project.assignment.student.get_full_name|slice:":1" }}
+                                            </div>
+                                            <div>
+                                                <h5 class="card-title mb-0">{{ project.assignment.student.get_full_name }}</h5>
+                                                <small class="text-muted">{{ project.assignment.student.email }}</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <h6 class="text-primary">{{ project.title }}</h6>
+                                        
+                                        <div class="mb-3">
+                                            <small class="text-muted">Progression:</small>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" 
+                                                     role="progressbar" 
+                                                     style="width: {{ project.progress }}%">
+                                                    {{ project.progress }}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>
+                                                <i class="fas fa-tasks text-primary"></i>
+                                                Jalons: {{ project.validated_milestones_count }}/{{ project.milestones.count }}
+                                            </span>
+                                            <span>
+                                                <i class="fas fa-file-alt text-info"></i>
+                                                Livrables: {{ project.approved_deliverables_count }}/{{ project.deliverables.count }}
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <span class="badge bg-{{ project.status_badge_class }}">
+                                                {{ project.get_status_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-transparent">
+                                        <div class="d-flex gap-2">
+                                            <a href="{% url 'projects:supervisor_student_detail' project.assignment.student.id %}" 
+                                               class="btn btn-sm btn-primary flex-fill">
+                                                <i class="fas fa-eye"></i> Détails
+                                            </a>
+                                            <a href="{% url 'communications:compose' %}?recipient={{ project.assignment.student.id }}" 
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-comments"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Vous n'encadrez aucun étudiant pour le moment.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+</style>
+
+<script>
+function toggleView(view) {
+    const tableView = document.getElementById('tableView');
+    const cardsView = document.getElementById('cardsView');
+    
+    if (view === 'table') {
+        tableView.classList.remove('d-none');
+        cardsView.classList.add('d-none');
+    } else {
+        tableView.classList.add('d-none');
+        cardsView.classList.remove('d-none');
+    }
+}
+</script>
+{% endblock %}

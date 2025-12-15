@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestion des Utilisateurs{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- En-tête avec statistiques -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2><i class="fas fa-users"></i> Gestion des Utilisateurs</h2>
+                {% if request.user.is_admin_general %}
+                <a href="{% url 'users:create_admin_user' %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Créer un Administrateur
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Cartes de statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Total Utilisateurs</h6>
+                            <h2 class="mb-0">{{ stats.total }}</h2>
+                        </div>
+                        <i class="fas fa-users fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Étudiants</h6>
+                            <h2 class="mb-0">{{ stats.students }}</h2>
+                        </div>
+                        <i class="fas fa-user-graduate fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Enseignants</h6>
+                            <h2 class="mb-0">{{ stats.teachers }}</h2>
+                        </div>
+                        <i class="fas fa-chalkboard-teacher fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-0">Administrateurs</h6>
+                            <h2 class="mb-0">{{ stats.admin_filiere|add:stats.admin_general }}</h2>
+                        </div>
+                        <i class="fas fa-user-shield fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres et recherche -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Filtres et Recherche</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <!-- Recherche -->
+                <div class="col-md-4">
+                    <label class="form-label">Recherche</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Nom, email, username, matricule..." 
+                           value="{{ search_query }}">
+                </div>
+
+                <!-- Filtre par rôle -->
+                <div class="col-md-2">
+                    <label class="form-label">Rôle</label>
+                    <select name="role" class="form-select">
+                        <option value="">Tous les rôles</option>
+                        {% for code, label in role_choices %}
+                        <option value="{{ code }}" {% if role_filter == code %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Filtre par filière -->
+                <div class="col-md-2">
+                    <label class="form-label">Filière</label>
+                    <select name="filiere" class="form-select">
+                        <option value="">Toutes les filières</option>
+                        {% for code, label in filiere_choices %}
+                        <option value="{{ code }}" {% if filiere_filter == code %}selected{% endif %}>
+                            {{ code }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Filtre par statut -->
+                <div class="col-md-2">
+                    <label class="form-label">Statut</label>
+                    <select name="status" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Actifs</option>
+                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactifs</option>
+                    </select>
+                </div>
+
+                <!-- Boutons -->
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search"></i> Filtrer
+                    </button>
+                    <a href="{% url 'users:user_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message|linebreaksbr }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Tableau des utilisateurs -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Liste des Utilisateurs
+                <span class="badge bg-secondary">{{ users.count }} résultat(s)</span>
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Utilisateur</th>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                            <th>Filière</th>
+                            <th>Statut</th>
+                            <th>Inscription</th>
+                            {% if request.user.is_admin_general %}
+                            <th class="text-center">Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <!-- Utilisateur -->
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle bg-{{ user.role|slice:':1' }} me-2">
+                                        {{ user.first_name|slice:':1'|upper }}{{ user.last_name|slice:':1'|upper }}
+                                    </div>
+                                    <div>
+                                        <strong>{{ user.get_full_name }}</strong><br>
+                                        <small class="text-muted">@{{ user.username }}</small>
+                                        {% if user.matricule %}
+                                        <br><small class="text-info">{{ user.matricule }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Email -->
+                            <td>
+                                <i class="fas fa-envelope text-muted"></i> {{ user.email }}
+                            </td>
+
+                            <!-- Rôle -->
+                            <td>
+                                {% if user.role == 'student' %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-user-graduate"></i> {{ user.get_role_display }}
+                                </span>
+                                {% elif user.role == 'teacher' %}
+                                <span class="badge bg-info">
+                                    <i class="fas fa-chalkboard-teacher"></i> {{ user.get_role_display }}
+                                </span>
+                                {% elif user.role == 'admin_filiere' %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-user-shield"></i> {{ user.get_role_display }}
+                                </span>
+                                {% elif user.role == 'admin_general' %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-crown"></i> {{ user.get_role_display }}
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Filière -->
+                            <td>
+                                {% if user.filiere %}
+                                <span class="badge bg-secondary">{{ user.filiere }}</span>
+                                {% elif user.filiere_admin %}
+                                <span class="badge bg-warning">{{ user.filiere_admin }}</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Statut -->
+                            <td>
+                                {% if user.is_active %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle"></i> Actif
+                                </span>
+                                {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-ban"></i> Inactif
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Date d'inscription -->
+                            <td>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> {{ user.created_at|date:"d/m/Y" }}
+                                </small>
+                            </td>
+
+                            <!-- Actions (admin général uniquement) -->
+                            {% if request.user.is_admin_general %}
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <!-- Activer/Désactiver -->
+                                    {% if user != request.user %}
+                                    <a href="{% url 'users:toggle_user_active' user.pk %}" 
+                                       class="btn btn-outline-{% if user.is_active %}warning{% else %}success{% endif %}"
+                                       onclick="return confirm('Voulez-vous vraiment {% if user.is_active %}désactiver{% else %}activer{% endif %} ce compte ?')">
+                                        <i class="fas fa-{% if user.is_active %}ban{% else %}check{% endif %}"></i>
+                                    </a>
+                                    {% endif %}
+                                    
+                                    <!-- Réinitialiser mot de passe -->
+                                    <a href="{% url 'users:reset_user_password' user.pk %}" 
+                                       class="btn btn-outline-primary"
+                                       title="Réinitialiser le mot de passe">
+                                        <i class="fas fa-key"></i>
+                                    </a>
+                                    
+                                    <!-- Voir détails -->
+                                    <a href="{% url 'users:user_detail' user.pk %}" 
+                                       class="btn btn-outline-info"
+                                       title="Voir les détails">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="{% if request.user.is_admin_general %}7{% else %}6{% endif %}" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                Aucun utilisateur trouvé
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+}
+.bg-s { background-color: #28a745; }
+.bg-t { background-color: #17a2b8; }
+.bg-a { background-color: #ffc107; }
+</style>
+{% endblock %}

@@ -7,7 +7,7 @@
 <div class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="fas fa-book"></i> Catalogue des sujets</h2>
-        {% if user.is_supervisor %}
+        {% if user.is_teacher %}
         <a href="{% url 'subjects:create' %}" class="btn btn-primary">
             <i class="fas fa-plus-circle"></i> Proposer un sujet
         </a>
@@ -25,7 +25,7 @@
                     {{ filter_form.level }}
                 </div>
                 <div class="col-md-3">
-                    {{ filter_form.domain }}
+                    {{ filter_form.filiere }}
                 </div>
                 <div class="col-md-2">
                     {{ filter_form.type }}
@@ -55,7 +55,7 @@
                     <div class="card-body">
                         <div class="mb-2">
                             <span class="badge bg-info">{{ subject.get_level_display }}</span>
-                            <span class="badge bg-secondary">{{ subject.get_domain_display }}</span>
+                            <span class="badge bg-secondary">{{ subject.get_filiere_display }}</span>
                             <span class="badge bg-success">{{ subject.get_type_display }}</span>
                         </div>
                         

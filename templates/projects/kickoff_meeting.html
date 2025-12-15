@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}Réunion de Cadrage - {{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- En-tête -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="fas fa-rocket"></i> Réunion de Cadrage du Projet
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">{{ project.title }}</h4>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <p><strong>Étudiant:</strong> {{ student.get_full_name }}</p>
+                            <p><strong>Niveau:</strong> {{ student.level }}</p>
+                            <p><strong>Filière:</strong> {{ student.filiere }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Encadreur:</strong> {{ supervisor.get_full_name }}</p>
+                            <p><strong>Grade:</strong> {{ supervisor.grade }}</p>
+                            <p><strong>Spécialité:</strong> {{ supervisor.specialite }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="alert alert-info mb-4">
+                <h5 class="alert-heading"><i class="fas fa-info-circle"></i> Objectif de cette réunion</h5>
+                <p>La réunion de cadrage est une étape essentielle pour:</p>
+                <ul class="mb-0">
+                    <li><strong>Clarifier les objectifs</strong> et les livrables attendus</li>
+                    <li><strong>Définir le planning</strong> et les jalons importants</li>
+                    <li><strong>Établir la méthodologie</strong> de travail et de suivi</li>
+                    <li><strong>Planifier les prochaines réunions</strong> de suivi</li>
+                </ul>
+            </div>
+
+            <!-- Description du projet -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Description du Projet</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ project.description }}</p>
+                    {% if project.assignment.subject.objectives %}
+                    <hr>
+                    <h6><strong>Objectifs:</strong></h6>
+                    <p>{{ project.assignment.subject.objectives }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if user.is_teacher %}
+            <!-- Formulaire de cadrage (encadreur seulement) -->
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-calendar"></i> Information sur la Réunion</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="meeting_date" class="form-label">Date et heure de la réunion</label>
+                                <input 
+                                    type="datetime-local" 
+                                    class="form-control" 
+                                    id="meeting_date" 
+                                    name="meeting_date" 
+                                    value="{{ now|date:'Y-m-d' }}T{{ now|date:'H:i' }}"
+                                    required
+                                >
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="meeting_location" class="form-label">Lieu de la réunion</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    id="meeting_location" 
+                                    name="meeting_location" 
+                                    placeholder="Bureau, Salle de réunion, Visioconférence..."
+                                    required
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-clipboard"></i> Compte-Rendu de la Réunion</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="meeting_minutes" class="form-label">
+                                Points discutés et compte-rendu
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="meeting_minutes" 
+                                name="meeting_minutes" 
+                                rows="6"
+                                placeholder="Résumé des discussions, points abordés, éclaircissements apportés..."
+                                required
+                            ></textarea>
+                            <small class="form-text text-muted">
+                                Documentez les échanges, les clarifications apportées, et tout point important discuté.
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="decisions" class="form-label">
+                                Décisions prises
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="decisions" 
+                                name="decisions" 
+                                rows="4"
+                                placeholder="Liste des décisions importantes prises durant la réunion..."
+                                required
+                            ></textarea>
+                            <small class="form-text text-muted">
+                                Ex: technologies validées, méthodologie retenue, planning confirmé, etc.
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="action_items" class="form-label">
+                                Actions à mener
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="action_items" 
+                                name="action_items" 
+                                rows="4"
+                                placeholder="Liste des actions à mener par l'étudiant ou l'encadreur..."
+                                required
+                            ></textarea>
+                            <small class="form-text text-muted">
+                                Ex: installer environnement, lire documentation, préparer cahier des charges, etc.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-clock"></i> Planification du Suivi</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="next_meeting" class="form-label">
+                                Date de la prochaine réunion de suivi
+                            </label>
+                            <input 
+                                type="datetime-local" 
+                                class="form-control" 
+                                id="next_meeting" 
+                                name="next_meeting"
+                            >
+                            <small class="form-text text-muted">
+                                Planifiez la prochaine réunion pour assurer un suivi régulier.
+                            </small>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <strong><i class="fas fa-lightbulb"></i> Recommandations:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Planifiez des réunions régulières (hebdomadaires ou bimensuelles)</li>
+                                <li>Définissez des objectifs clairs pour chaque intervalle</li>
+                                <li>Utilisez le journal de bord pour le suivi entre les réunions</li>
+                                <li>Adaptez la fréquence selon les besoins du projet</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirmation -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            <input 
+                                type="checkbox" 
+                                class="form-check-input" 
+                                id="confirm_kickoff" 
+                                required
+                            >
+                            <label class="form-check-label" for="confirm_kickoff">
+                                <strong>Je confirme que la réunion de cadrage a eu lieu et que le projet peut démarrer officiellement</strong>
+                            </label>
+                        </div>
+
+                        <div class="alert alert-info mb-0">
+                            <p class="mb-0">
+                                <i class="fas fa-info-circle"></i>
+                                Après validation, le projet passera en statut <strong>"En cours"</strong> et l'étudiant pourra commencer à travailler.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons -->
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="{% url 'projects:detail' project.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-check"></i> Valider et Démarrer le Projet
+                    </button>
+                </div>
+            </form>
+            {% else %}
+            <!-- Vue étudiant (lecture seule) -->
+            <div class="alert alert-warning">
+                <h5 class="alert-heading"><i class="fas fa-hourglass-half"></i> En attente du cadrage</h5>
+                <p>
+                    Votre encadreur doit organiser une réunion de cadrage pour:
+                </p>
+                <ul>
+                    <li>Discuter en détail du projet et de ses objectifs</li>
+                    <li>Définir le planning et les jalons</li>
+                    <li>Établir la méthodologie de travail</li>
+                    <li>Planifier les réunions de suivi</li>
+                </ul>
+                <p class="mb-0">
+                    <strong>Action:</strong> Contactez votre encadreur pour planifier cette réunion importante.
+                </p>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Préparez-vous pour la réunion</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Pour une réunion productive, préparez:</strong></p>
+                    <ul>
+                        <li>Vos questions sur le projet et ses objectifs</li>
+                        <li>Vos idées sur la méthodologie à suivre</li>
+                        <li>Une liste des technologies que vous envisagez d'utiliser</li>
+                        <li>Votre disponibilité pour les prochaines semaines</li>
+                        <li>Vos contraintes éventuelles (cours, autres projets, etc.)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <a href="{% url 'projects:detail' project.id %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Retour au Projet
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

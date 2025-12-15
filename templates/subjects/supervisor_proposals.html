@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Propositions d'Étudiants{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-inbox"></i> Propositions d'Étudiants
+            </h2>
+
+            <!-- Filtres -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group" role="group">
+                            <a href="?" class="btn btn-{% if not status_filter %}primary{% else %}outline-primary{% endif %}">
+                                <i class="fas fa-list"></i> Toutes
+                            </a>
+                            <a href="?status=pending" class="btn btn-{% if status_filter == 'pending' %}warning{% else %}outline-warning{% endif %}">
+                                <i class="fas fa-clock"></i> En attente
+                            </a>
+                            <a href="?status=accepted" class="btn btn-{% if status_filter == 'accepted' %}success{% else %}outline-success{% endif %}">
+                                <i class="fas fa-check"></i> Acceptées
+                            </a>
+                            <a href="?status=rejected" class="btn btn-{% if status_filter == 'rejected' %}danger{% else %}outline-danger{% endif %}">
+                                <i class="fas fa-times"></i> Rejetées
+                            </a>
+                        </div>
+                        <span class="badge bg-secondary">{{ total_count }} proposition{{ total_count|pluralize }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste des propositions -->
+            {% if proposals %}
+                <div class="row">
+                    {% for proposal in proposals %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 {% if proposal.status == 'pending' %}border-warning{% endif %}">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h5 class="mb-0">{{ proposal.title }}</h5>
+                                    <span class="badge bg-{% if proposal.status == 'pending' %}warning{% elif proposal.status == 'accepted' %}success{% else %}secondary{% endif %}">
+                                        {{ proposal.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <strong>
+                                        <i class="fas fa-user-graduate"></i>
+                                        {{ proposal.student.get_full_name }}
+                                    </strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ proposal.student.level }} • {{ proposal.student.filiere }}
+                                    </small>
+                                </div>
+
+                                <p class="text-muted small">
+                                    {{ proposal.description|truncatewords:20 }}
+                                </p>
+
+                                <div class="mb-2">
+                                    <span class="badge bg-secondary">{{ proposal.get_filiere_display }}</span>
+                                    <span class="badge bg-info">{{ proposal.get_type_display }}</span>
+                                </div>
+
+                                {% if proposal.technologies %}
+                                <div class="mb-2">
+                                    <small><strong>Technologies:</strong> {{ proposal.technologies|truncatewords:5 }}</small>
+                                </div>
+                                {% endif %}
+
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar"></i> {{ proposal.created_at|date:"d/m/Y" }}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'subjects:proposal_detail' proposal.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
+                                        <i class="fas fa-eye"></i> Détails
+                                    </a>
+                                    {% if proposal.status == 'pending' %}
+                                    <a href="{% url 'subjects:proposal_accept' proposal.pk %}" class="btn btn-sm btn-success">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h4>Aucune proposition</h4>
+                        <p class="text-muted">
+                            Aucun étudiant ne vous a proposé de projet pour le moment.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

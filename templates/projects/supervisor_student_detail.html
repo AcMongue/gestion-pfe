@@ -1,0 +1,520 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ student.get_full_name }} - Suivi{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- En-tête avec info étudiant -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="avatar-large">
+                                {{ student.get_full_name|slice:":1" }}
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h2 class="mb-1">{{ student.get_full_name }}</h2>
+                            <p class="mb-0">
+                                <i class="fas fa-envelope"></i> {{ student.email }} &nbsp;
+                                {% if student.phone %}
+                                <i class="fas fa-phone"></i> {{ student.phone }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{% url 'communications:compose' %}?recipient={{ student.id }}" 
+                               class="btn btn-light">
+                                <i class="fas fa-comments"></i> Envoyer un message
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation par onglets -->
+    <ul class="nav nav-tabs mb-4" id="studentTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" 
+                    data-bs-target="#overview" type="button" role="tab">
+                <i class="fas fa-chart-line"></i> Vue d'ensemble
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="milestones-tab" data-bs-toggle="tab" 
+                    data-bs-target="#milestones" type="button" role="tab">
+                <i class="fas fa-tasks"></i> Jalons 
+                {% if pending_milestones_count %}
+                <span class="badge bg-warning">{{ pending_milestones_count }}</span>
+                {% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="deliverables-tab" data-bs-toggle="tab" 
+                    data-bs-target="#deliverables" type="button" role="tab">
+                <i class="fas fa-file-alt"></i> Livrables
+                {% if pending_deliverables_count %}
+                <span class="badge bg-danger">{{ pending_deliverables_count }}</span>
+                {% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="communication-tab" data-bs-toggle="tab" 
+                    data-bs-target="#communication" type="button" role="tab">
+                <i class="fas fa-comments"></i> Communication
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="evaluation-tab" data-bs-toggle="tab" 
+                    data-bs-target="#evaluation" type="button" role="tab">
+                <i class="fas fa-star"></i> Évaluation
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenu des onglets -->
+    <div class="tab-content" id="studentTabContent">
+        <!-- Onglet Vue d'ensemble -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div class="row">
+                <!-- Carte du projet -->
+                <div class="col-md-8 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-folder-open"></i> {{ project.title }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p><strong>Sujet:</strong> {{ project.assignment.subject.title }}</p>
+                                    <p><strong>Catégorie:</strong> {{ project.assignment.subject.category }}</p>
+                                    <p><strong>Date de début:</strong> {{ project.start_date|date:"d/m/Y" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Statut:</strong> 
+                                        <span class="badge bg-{{ project.status_badge_class }}">
+                                            {{ project.get_status_display }}
+                                        </span>
+                                    </p>
+                                    <p><strong>Date de fin prévue:</strong> 
+                                        {{ project.expected_end_date|date:"d/m/Y"|default:"Non définie" }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <strong>Progression globale:</strong>
+                                <div class="progress" style="height: 30px;">
+                                    <div class="progress-bar bg-success" 
+                                         role="progressbar" 
+                                         style="width: {{ project.progress }}%">
+                                        {{ project.progress }}%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <strong>Description:</strong>
+                                <p class="text-muted">{{ project.description }}</p>
+                            </div>
+
+                            {% if project.technologies %}
+                            <div class="mb-3">
+                                <strong>Technologies:</strong>
+                                <p>{{ project.technologies }}</p>
+                            </div>
+                            {% endif %}
+
+                            <div class="d-flex gap-2 mt-3">
+                                <a href="{% url 'projects:detail' project.pk %}" 
+                                   class="btn btn-primary">
+                                    <i class="fas fa-eye"></i> Voir le projet complet
+                                </a>
+                                {% if project.repository_url %}
+                                <a href="{{ project.repository_url }}" 
+                                   target="_blank" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="fab fa-github"></i> Dépôt GitHub
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistiques -->
+                <div class="col-md-4 mb-4">
+                    <div class="card mb-3">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Jalons Validés</h6>
+                            <h2 class="text-primary">
+                                {{ validated_milestones_count }}/{{ total_milestones_count }}
+                            </h2>
+                            <div class="progress mt-2">
+                                <div class="progress-bar bg-primary" 
+                                     style="width: {% widthratio validated_milestones_count total_milestones_count 100 %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Livrables Approuvés</h6>
+                            <h2 class="text-success">
+                                {{ approved_deliverables_count }}/{{ total_deliverables_count }}
+                            </h2>
+                            <div class="progress mt-2">
+                                <div class="progress-bar bg-success" 
+                                     style="width: {% widthratio approved_deliverables_count total_deliverables_count 100 %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Commentaires Échangés</h6>
+                            <h2 class="text-info">{{ comments_count }}</h2>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Dernière Activité</h6>
+                            <p class="mb-0">{{ project.updated_at|timesince }} ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline récente -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-clock"></i> Activités Récentes</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_activities %}
+                                <div class="timeline">
+                                    {% for activity in recent_activities %}
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker bg-{{ activity.type_class }}"></div>
+                                        <div class="timeline-content">
+                                            <small class="text-muted">{{ activity.created_at|date:"d/m/Y H:i" }}</small>
+                                            <p class="mb-0">{{ activity.description }}</p>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">Aucune activité récente</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Onglet Jalons -->
+        <div class="tab-pane fade" id="milestones" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Jalons du Projet</h5>
+                </div>
+                <div class="card-body">
+                    {% if milestones %}
+                        {% for milestone in milestones %}
+                        <div class="card mb-3 border-start border-5 border-{{ milestone.status_color }}">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <h6 class="mb-1">
+                                            {% if milestone.is_completed %}
+                                                <i class="fas fa-check-circle text-success"></i>
+                                            {% else %}
+                                                <i class="fas fa-circle-notch text-warning"></i>
+                                            {% endif %}
+                                            {{ milestone.title }}
+                                        </h6>
+                                        <p class="text-muted mb-2">{{ milestone.description }}</p>
+                                        <small class="text-muted">
+                                            Échéance: {{ milestone.due_date|date:"d/m/Y" }}
+                                            {% if milestone.is_overdue %}
+                                                <span class="badge bg-danger">En retard</span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        {% if milestone.validated_by_supervisor %}
+                                            <span class="badge bg-success p-2">
+                                                <i class="fas fa-check-double"></i> Validé
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">{{ milestone.validation_date|date:"d/m/Y" }}</small>
+                                        {% elif milestone.is_completed %}
+                                            <span class="badge bg-warning p-2">
+                                                <i class="fas fa-clock"></i> En attente de validation
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary p-2">
+                                                <i class="fas fa-hourglass-half"></i> En cours
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-3">
+                                        {% if milestone.is_completed and not milestone.validated_by_supervisor %}
+                                            <button class="btn btn-success w-100" 
+                                                    onclick="validateMilestone({{ milestone.id }})">
+                                                <i class="fas fa-check"></i> Valider
+                                            </button>
+                                        {% elif milestone.validated_by_supervisor %}
+                                            <button class="btn btn-outline-secondary w-100" disabled>
+                                                <i class="fas fa-lock"></i> Validé
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-outline-secondary w-100" disabled>
+                                                Pas encore complété
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Aucun jalon défini pour ce projet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Onglet Livrables -->
+        <div class="tab-pane fade" id="deliverables" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Livrables Soumis</h5>
+                </div>
+                <div class="card-body">
+                    {% if deliverables %}
+                        {% for deliverable in deliverables %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-5">
+                                        <h6 class="mb-1">{{ deliverable.title }}</h6>
+                                        <p class="text-muted small mb-2">{{ deliverable.description }}</p>
+                                        <div>
+                                            <span class="badge bg-{{ deliverable.status_badge_class }}">
+                                                {{ deliverable.get_status_display }}
+                                            </span>
+                                            <small class="text-muted ms-2">
+                                                Soumis le {{ deliverable.submitted_at|date:"d/m/Y H:i" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        {% if deliverable.file %}
+                                            <a href="{{ deliverable.file.url }}" 
+                                               class="btn btn-outline-primary btn-sm w-100" 
+                                               target="_blank">
+                                                <i class="fas fa-download"></i> Télécharger
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4">
+                                        {% if deliverable.status == 'submitted' %}
+                                            <a href="{% url 'projects:deliverable_review' deliverable.pk %}" 
+                                               class="btn btn-primary w-100">
+                                                <i class="fas fa-edit"></i> Réviser
+                                            </a>
+                                        {% elif deliverable.status == 'approved' %}
+                                            <button class="btn btn-success w-100" disabled>
+                                                <i class="fas fa-check-circle"></i> Approuvé
+                                            </button>
+                                            {% if deliverable.rating %}
+                                                <small class="d-block text-center mt-1">
+                                                    Note: {{ deliverable.rating }}/20
+                                                </small>
+                                            {% endif %}
+                                        {% elif deliverable.status == 'rejected' %}
+                                            <button class="btn btn-danger w-100" disabled>
+                                                <i class="fas fa-times-circle"></i> Rejeté
+                                            </button>
+                                        {% endif %}
+                                        
+                                        {% if deliverable.review_comments %}
+                                            <small class="d-block text-muted mt-2">
+                                                <strong>Commentaire:</strong> {{ deliverable.review_comments|truncatewords:15 }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Aucun livrable soumis pour ce projet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Onglet Communication -->
+        <div class="tab-pane fade" id="communication" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-comments"></i> Historique des Communications</h5>
+                </div>
+                <div class="card-body">
+                    {% if comments %}
+                        {% for comment in comments %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ comment.author.get_full_name }}</strong>
+                                    <small class="text-muted">{{ comment.created_at|date:"d/m/Y H:i" }}</small>
+                                </div>
+                                <p class="mb-0 mt-2">{{ comment.content }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <a href="{% url 'communications:compose' %}?recipient={{ student.id }}" 
+                           class="btn btn-primary">
+                            <i class="fas fa-comments"></i> Envoyer un message
+                        </a>
+                    {% else %}
+                        <p class="text-muted">Aucun commentaire échangé pour le moment.</p>
+                        <a href="{% url 'communications:compose' %}?recipient={{ student.id }}" 
+                           class="btn btn-primary">
+                            <i class="fas fa-comment-medical"></i> Démarrer une conversation
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Onglet Évaluation -->
+        <div class="tab-pane fade" id="evaluation" role="tabpanel">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-star"></i> Évaluation du Projet</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'projects:evaluate' project.pk %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Note globale (sur 20)</label>
+                            <input type="number" 
+                                   name="supervisor_rating" 
+                                   class="form-control" 
+                                   min="0" 
+                                   max="20" 
+                                   step="0.5"
+                                   value="{{ project.supervisor_rating|default:'' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Notes et observations</label>
+                            <textarea name="supervisor_notes" 
+                                      class="form-control" 
+                                      rows="6">{{ project.supervisor_notes }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Enregistrer l'évaluation
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: white;
+    color: #667eea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 36px;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+.timeline-content {
+    padding-left: 10px;
+}
+</style>
+
+<script>
+function validateMilestone(milestoneId) {
+    if (confirm('Confirmer la validation de ce jalon ?')) {
+        fetch(`/projects/milestone/${milestoneId}/validate/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ validated: true })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erreur lors de la validation');
+            }
+        });
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

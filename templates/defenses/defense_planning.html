@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Planification des soutenances - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-calendar-alt"></i> Planification des soutenances</h2>
+        <a href="{% url 'users:dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <!-- Vue d'ensemble -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body text-center">
+                    <h3>{{ projects_data|length }}</h3>
+                    <p class="mb-0">{% if is_admin %}Projets affectés{% else %}Mes projets{% endif %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body text-center">
+                    <h3>{{ all_defenses|length }}</h3>
+                    <p class="mb-0">Soutenances planifiées</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body text-center">
+                    <h3>{% widthratio projects_data|length 1 1 as total %}{% widthratio all_defenses|length 1 1 as planned %}{{ total|add:"-"|add:planned }}</h3>
+                    <p class="mb-0">À planifier</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body text-center">
+                    <h3>{{ pending_requests|length }}</h3>
+                    <p class="mb-0">Demandes en attente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demandes de modification en attente -->
+    {% if pending_requests %}
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-exclamation-circle"></i> Demandes de modification en attente
+                <span class="badge bg-light text-dark">{{ pending_requests|length }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Soutenance</th>
+                            <th>Demandé par</th>
+                            <th>Date actuelle</th>
+                            <th>Date proposée</th>
+                            <th>Motif</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in pending_requests %}
+                        <tr>
+                            <td>
+                                <strong>{{ request.defense.project.title|truncatewords:5 }}</strong><br>
+                                <small class="text-muted">{{ request.defense.project.assignment.student.get_full_name }}</small>
+                            </td>
+                            <td>
+                                {{ request.requested_by.get_full_name }}<br>
+                                <small class="text-muted">{{ request.requested_by.get_role_display }}</small>
+                            </td>
+                            <td>
+                                {{ request.defense.date|date:"d/m/Y" }}<br>
+                                <small>{{ request.defense.time }}</small>
+                            </td>
+                            <td>
+                                {% if request.proposed_date %}
+                                    {{ request.proposed_date|date:"d/m/Y" }}<br>
+                                    {% if request.proposed_time %}
+                                        <small>{{ request.proposed_time }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <em class="text-muted">Non spécifiée</em>
+                                {% endif %}
+                            </td>
+                            <td>{{ request.reason|truncatewords:10 }}</td>
+                            <td>
+                                {% if is_admin %}
+                                    <a href="{% url 'defenses:review_change_request' request.pk %}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-check-circle"></i> Examiner
+                                    </a>
+                                {% else %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-clock"></i> En attente d'examen
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Projets sans soutenance planifiée -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-exclamation-triangle"></i> 
+                {% if is_admin %}Projets en attente de planification{% else %}Mes projets en attente de planification{% endif %}
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if projects_data %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Étudiant</th>
+                                <th>Sujet</th>
+                                <th>Encadreur</th>
+                                <th>Projet</th>
+                                <th>Soutenance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for data in projects_data %}
+                            <tr>
+                                <td>
+                                    <strong>{{ data.assignment.student.get_full_name }}</strong><br>
+                                    <small class="text-muted">{{ data.assignment.student.email }}</small>
+                                </td>
+                                <td>{{ data.assignment.subject.title|truncatewords:5 }}</td>
+                                <td>{{ data.assignment.subject.supervisor.get_full_name }}</td>
+                                <td>
+                                    {% if data.has_project %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Créé
+                                        </span>
+                                        <br>
+                                        <small>{{ data.project.title|truncatewords:3 }}</small>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-times"></i> Non créé
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if data.has_defense %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-calendar-check"></i> Planifiée
+                                        </span>
+                                        <br>
+                                        <small>{{ data.defense.date|date:"d/m/Y" }} à {{ data.defense.time }}</small>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-clock"></i> Non planifiée
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if data.has_project %}
+                                        {% if not data.has_defense %}
+                                            {% if is_admin %}
+                                                <a href="{% url 'defenses:create' data.project.pk %}" 
+                                                   class="btn btn-sm btn-success">
+                                                    <i class="fas fa-calendar-plus"></i> Planifier
+                                                </a>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-clock"></i> En attente de planification
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <a href="{% url 'defenses:detail' data.defense.pk %}" 
+                                               class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i> Voir
+                                            </a>
+                                        {% endif %}
+                                        <a href="{% url 'projects:detail' data.project.pk %}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="fas fa-project-diagram"></i> Projet
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">
+                                            <i class="fas fa-info-circle"></i> Créer le projet d'abord
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted text-center mb-0">
+                    <i class="fas fa-info-circle"></i> Aucun projet affecté pour le moment.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Calendrier Global des Soutenances -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-calendar-check"></i> Planning Global des Soutenances
+                <span class="badge bg-light text-dark ms-2">{{ all_defenses|length }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if is_teacher %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Information:</strong> Vous visualisez le planning global de toutes les soutenances. 
+                Les lignes en surbrillance <span class="badge bg-info">bleue</span> correspondent à vos projets, 
+                pour lesquels vous pouvez demander une reprogrammation si nécessaire.
+            </div>
+            {% endif %}
+            {% if all_defenses %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date & Heure</th>
+                                <th>Étudiant</th>
+                                <th>Encadreur</th>
+                                <th>Projet</th>
+                                <th>Salle</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for defense in all_defenses %}
+                            <tr {% if is_teacher and defense.project.assignment.subject.supervisor == user %}class="table-info"{% endif %}>
+                                <td>
+                                    <strong>{{ defense.date|date:"d/m/Y" }}</strong><br>
+                                    <small class="text-muted">{{ defense.time|time:"H:i" }}</small>
+                                </td>
+                                <td>
+                                    {{ defense.project.assignment.student.get_full_name }}<br>
+                                    <small class="text-muted">{{ defense.project.assignment.student.level }}</small>
+                                </td>
+                                <td>
+                                    {{ defense.project.assignment.subject.supervisor.get_full_name }}
+                                    {% if is_teacher and defense.project.assignment.subject.supervisor == user %}
+                                        <br><span class="badge bg-info">Vous</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ defense.project.title|truncatewords:4 }}
+                                </td>
+                                <td>
+                                    <i class="fas fa-map-marker-alt"></i> {{ defense.room }}
+                                    {% if defense.building %}
+                                        <br><small class="text-muted">{{ defense.building }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if defense.status == 'scheduled' %}
+                                        <span class="badge bg-warning text-dark">Planifiée</span>
+                                    {% elif defense.status == 'in_progress' %}
+                                        <span class="badge bg-info">En cours</span>
+                                    {% elif defense.status == 'completed' %}
+                                        <span class="badge bg-success">Terminée</span>
+                                    {% elif defense.status == 'cancelled' %}
+                                        <span class="badge bg-danger">Annulée</span>
+                                    {% elif defense.status == 'rescheduled' %}
+                                        <span class="badge bg-secondary">Reportée</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ defense.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'defenses:detail' defense.pk %}" 
+                                           class="btn btn-outline-primary"
+                                           title="Voir les détails">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if is_teacher and defense.project.assignment.subject.supervisor == user %}
+                                            <a href="{% url 'defenses:request_change' defense.pk %}" 
+                                               class="btn btn-outline-warning"
+                                               title="Demander une reprogrammation">
+                                                <i class="fas fa-calendar-times"></i>
+                                            </a>
+                                        {% endif %}
+                                        {% if is_admin %}
+                                            <a href="{% url 'defenses:update' defense.pk %}" 
+                                               class="btn btn-outline-success"
+                                               title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'defenses:add_jury_member' defense.pk %}" 
+                                               class="btn btn-outline-info"
+                                               title="Gérer le jury">
+                                                <i class="fas fa-user-plus"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>Conseil:</strong> Assurez-vous d'ajouter les membres du jury pour chaque soutenance planifiée.
+                </div>
+            {% else %}
+                <p class="text-muted text-center mb-0">
+                    <i class="fas fa-info-circle"></i> Aucune soutenance planifiée pour le moment.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

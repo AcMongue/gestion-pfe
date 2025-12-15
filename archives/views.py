@@ -2,16 +2,79 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Avg, Count, Q
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from .models import ArchivedProject, Report
 from .forms import ArchiveProjectForm, ReportGenerationForm
 from projects.models import Project
 import json
 from datetime import datetime
 
+
+def archive_project_after_defense(project, archived_by=None):
+    """
+    Archive automatiquement un projet après soutenance et notation complète.
+    
+    Args:
+        project: Instance de Project
+        archived_by: User qui archive (optionnel)
+    
+    Returns:
+        ArchivedProject ou None si conditions non remplies
+    """
+    # Vérifier les conditions d'archivage
+    if not hasattr(project, 'defense'):
+        raise ValidationError("Le projet n'a pas de soutenance programmée.")
+    
+    defense = project.defense
+    
+    # Vérifier que la soutenance est terminée et notée
+    if not defense.is_fully_graded:
+        raise ValidationError("La soutenance doit être complètement notée avant archivage.")
+    
+    # Vérifier que le projet n'est pas déjà archivé
+    if hasattr(project, 'archive'):
+        return project.archive
+    
+    # Extraire l'année académique
+    if project.academic_year:
+        year_str = project.academic_year.year
+        year = int(year_str.split('-')[0])
+    else:
+        year = timezone.now().year
+    
+    # Déterminer le semestre (S1 ou S2)
+    defense_month = defense.date.month
+    semester = 'S1' if defense_month <= 6 else 'S2'
+    
+    # Créer l'archive
+    archive = ArchivedProject.objects.create(
+        project=project,
+        archived_by=archived_by,
+        year=year,
+        semester=semester,
+        final_grade=defense.final_grade,
+        keywords=project.technologies,
+        summary=project.description[:500],  # Tronquer si trop long
+        achievements=project.objectives,
+        is_public=True
+    )
+    
+    # Changer le statut du projet
+    project.status = 'completed'
+    project.actual_end_date = timezone.now().date()
+    project.save()
+    
+    # Optionnel: Envoyer notification aux étudiants
+    from communications.email_utils import notify_defense_result
+    notify_defense_result(defense)
+    
+    return archive
+
 @login_required
 def archive_list_view(request):
     """Liste des projets archivés"""
-    if request.user.role not in ['admin', 'supervisor']:
+    if request.user.role not in ['admin_filiere', 'admin_general', 'teacher']:
         messages.error(request, "Vous n'êtes pas autorisé à consulter les archives.")
         return redirect('users:dashboard')
     
@@ -43,7 +106,7 @@ def archive_list_view(request):
 @login_required
 def archive_detail_view(request, pk):
     """Détails d'un projet archivé"""
-    if request.user.role not in ['admin', 'supervisor']:
+    if request.user.role not in ['admin_filiere', 'admin_general', 'teacher']:
         messages.error(request, "Vous n'êtes pas autorisé à consulter les archives.")
         return redirect('users:dashboard')
     
@@ -116,7 +179,6 @@ def generate_report_view(request):
     
     if request.method == 'POST':
         form = ReportGenerationForm(request.POST)
-        form = ReportGenerationForm(request.POST)
         if form.is_valid():
             report_type = form.cleaned_data['report_type']
             year_str = form.cleaned_data.get('academic_year')
@@ -160,12 +222,11 @@ def generate_report_view(request):
 @login_required
 def report_detail_view(request, pk):
     """Afficher un rapport"""
-def generate_statistics(report_type, year=None, semester=None):
-    """Générer les statistiques selon le type de rapport"""
-    archives = ArchivedProject.objects.all()
+    if request.user.role != 'admin':
+        messages.error(request, "Seuls les administrateurs peuvent accéder aux rapports.")
+        return redirect('users:dashboard')
     
-    if year:
-        archives = archives.filter(year=year)
+    report = get_object_or_404(Report, pk=pk)
     context = {
         'report': report,
     }

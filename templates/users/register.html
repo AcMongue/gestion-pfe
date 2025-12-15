@@ -1,36 +1,304 @@
-{% extends 'base.html' %}
+{% extends 'auth_base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Inscription - Gestion PFE{% endblock %}
+{% block title %}Inscription - GradEase{% endblock %}
+
+{% block extra_css %}
+<style>
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    
+    .step-indicator::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 25%;
+        right: 25%;
+        height: 3px;
+        background: var(--gray-200);
+        z-index: 0;
+    }
+    
+    .step {
+        position: relative;
+        text-align: center;
+        flex: 1;
+        z-index: 1;
+    }
+    
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--gray-200);
+        color: var(--gray-500);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .step.active .step-circle {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 0 0 4px rgba(0, 70, 116, 0.1);
+    }
+    
+    .step.completed .step-circle {
+        background: var(--success-color);
+        color: white;
+    }
+    
+    .step-label {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+    
+    .step.active .step-label {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    
+    .form-step {
+        display: none;
+    }
+    
+    .form-step.active {
+        display: block;
+        animation: fadeInUp 0.4s ease;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container my-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-user-plus"></i> Créer un compte
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <form method="post" novalidate>
+        <div class="col-md-7 col-lg-6">
+            <!-- En-tête -->
+            <div class="text-center mb-4">
+                <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                <h2 class="fw-bold">Créer un compte</h2>
+                <p class="text-muted">Rejoignez GradEase en quelques étapes</p>
+            </div>
+            
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4 p-md-5">
+                    <!-- Indicateur de progression -->
+                    <div class="step-indicator">
+                        <div class="step active" id="step-indicator-1">
+                            <div class="step-circle">1</div>
+                            <div class="step-label">Informations de base</div>
+                        </div>
+                        <div class="step" id="step-indicator-2">
+                            <div class="step-circle">2</div>
+                            <div class="step-label">Détails du profil</div>
+                        </div>
+                    </div>
+                    <form method="post" novalidate id="registrationForm">
                         {% csrf_token %}
-                        {{ form|crispy }}
                         
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-user-plus"></i> S'inscrire
-                            </button>
+                        <!-- ÉTAPE 1: Informations de base -->
+                        <div class="form-step active" id="step-1">
+                            <h5 class="mb-4 fw-bold"><i class="fas fa-user me-2"></i>Informations personnelles</h5>
+                            
+                            <div class="mb-3">
+                                {{ form.username.label_tag }}
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                    <div class="text-danger small">{{ form.username.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.first_name.label_tag }}
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-danger small">{{ form.first_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.last_name.label_tag }}
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-danger small">{{ form.last_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.email.label_tag }}
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-4">
+                                {{ form.role.label_tag }}
+                                {{ form.role }}
+                                {% if form.role.errors %}
+                                    <div class="text-danger small">{{ form.role.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-primary btn-lg" onclick="nextStep()">
+                                    Continuer <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- ÉTAPE 2: Détails du profil et mot de passe -->
+                        <div class="form-step" id="step-2">
+                            <h5 class="mb-4 fw-bold"><i class="fas fa-id-card me-2"></i>Détails du profil</h5>
+                        
+                            <!-- Champs pour ÉTUDIANTS -->
+                            <div id="studentFields" class="role-fields" style="display: none;">
+                                <div class="alert alert-info mb-4">
+                                    <i class="fas fa-info-circle me-2"></i>Informations pour étudiants
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ form.matricule.label_tag }}
+                                    {{ form.matricule }}
+                                    <small class="form-text text-muted">
+                                        Format: xxGxxxxx (ex: 21G12345)
+                                    </small>
+                                    {% if form.matricule.errors %}
+                                        <div class="text-danger small">{{ form.matricule.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_entry_level">Niveau d'entrée à l'ENSPD</label>
+                                    {{ form.entry_level }}
+                                    <small class="form-text text-muted">
+                                        À quel niveau êtes-vous entré à l'ENSPD ?
+                                    </small>
+                                    {% if form.entry_level.errors %}
+                                        <div class="text-danger small">{{ form.entry_level.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_level">Niveau actuel</label>
+                                    {{ form.level }}
+                                    {% if form.level.errors %}
+                                        <div class="text-danger small">{{ form.level.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        
+                            <!-- Champs pour ENSEIGNANTS -->
+                            <div id="teacherFields" class="role-fields" style="display: none;">
+                                <div class="alert alert-info mb-4">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i>Informations pour enseignants
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_academic_title">Grade Académique</label>
+                                    {{ form.academic_title }}
+                                    {% if form.academic_title.errors %}
+                                        <div class="text-danger small">{{ form.academic_title.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-8 mb-3">
+                                        {{ form.specialite.label_tag }}
+                                        {{ form.specialite }}
+                                        {% if form.specialite.errors %}
+                                            <div class="text-danger small">{{ form.specialite.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="id_max_students">Max étudiants</label>
+                                        {{ form.max_students }}
+                                        {% if form.max_students.errors %}
+                                            <div class="text-danger small">{{ form.max_students.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Champ Filière/Département -->
+                            <div id="filiereField" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="id_filiere" id="filiereLabel">Filière</label>
+                                    {{ form.filiere }}
+                                    {% if form.filiere.errors %}
+                                        <div class="text-danger small">{{ form.filiere.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Champs mot de passe -->
+                            <h6 class="mt-4 mb-3 fw-bold"><i class="fas fa-lock me-2"></i>Sécurité</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.password1.label_tag }}
+                                    {{ form.password1 }}
+                                    {% if form.password1.errors %}
+                                        <div class="text-danger small">{{ form.password1.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.password2.label_tag }}
+                                    {{ form.password2 }}
+                                    {% if form.password2.errors %}
+                                        <div class="text-danger small">{{ form.password2.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <button type="button" class="btn btn-outline-secondary btn-lg w-100" onclick="prevStep()">
+                                        <i class="fas fa-arrow-left me-2"></i>Retour
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                                        <i class="fas fa-check me-2"></i>S'inscrire
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                     
                     <hr class="my-4">
                     
                     <div class="text-center">
-                        <p class="mb-0">
+                        <p class="mb-0 text-muted">
                             Vous avez déjà un compte ? 
-                            <a href="{% url 'users:login' %}">Connectez-vous</a>
+                            <a href="{% url 'users:login' %}" class="text-decoration-none fw-semibold">
+                                Connectez-vous
+                            </a>
                         </p>
                     </div>
                 </div>
@@ -38,4 +306,77 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentStep = 1;
+    
+    // Navigation entre étapes
+    function nextStep() {
+        if (currentStep < 2) {
+            document.getElementById('step-' + currentStep).classList.remove('active');
+            document.getElementById('step-indicator-' + currentStep).classList.remove('active');
+            document.getElementById('step-indicator-' + currentStep).classList.add('completed');
+            
+            currentStep++;
+            
+            document.getElementById('step-' + currentStep).classList.add('active');
+            document.getElementById('step-indicator-' + currentStep).classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+    
+    function prevStep() {
+        if (currentStep > 1) {
+            document.getElementById('step-' + currentStep).classList.remove('active');
+            document.getElementById('step-indicator-' + currentStep).classList.remove('active');
+            
+            currentStep--;
+            
+            document.getElementById('step-' + currentStep).classList.add('active');
+            document.getElementById('step-indicator-' + currentStep).classList.remove('completed');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+    
+    // Gestion dynamique des champs selon le rôle
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleSelect = document.getElementById('id_role');
+        const studentFields = document.getElementById('studentFields');
+        const teacherFields = document.getElementById('teacherFields');
+        const filiereField = document.getElementById('filiereField');
+        const filiereLabel = document.getElementById('filiereLabel');
+        
+        function updateFieldsVisibility() {
+            const selectedRole = roleSelect.value;
+            
+            // Masquer tous les champs
+            studentFields.style.display = 'none';
+            teacherFields.style.display = 'none';
+            filiereField.style.display = 'none';
+            
+            // Afficher les champs appropriés
+            if (selectedRole === 'student') {
+                studentFields.style.display = 'block';
+                filiereField.style.display = 'block';
+                filiereLabel.textContent = 'Filière';
+            } else if (selectedRole === 'teacher') {
+                teacherFields.style.display = 'block';
+                filiereField.style.display = 'block';
+                filiereLabel.textContent = 'Département';
+            }
+        }
+        
+        // Initialiser l'affichage
+        updateFieldsVisibility();
+        
+        // Écouter les changements de rôle
+        roleSelect.addEventListener('change', updateFieldsVisibility);
+    });
+</script>
 {% endblock %}

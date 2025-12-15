@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestion des affectations - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-user-check"></i> Gestion des affectations</h2>
+        <a href="{% url 'users:dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <!-- Candidatures acceptées en attente d'affectation -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-clock"></i> Candidatures acceptées en attente d'affectation
+                <span class="badge bg-light text-dark">{{ pending_applications|length }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if pending_applications %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Étudiant</th>
+                                <th>Sujet</th>
+                                <th>Encadreur</th>
+                                <th>Niveau</th>
+                                <th>Date candidature</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for application in pending_applications %}
+                            <tr>
+                                <td>
+                                    <strong>{{ application.student.get_full_name }}</strong><br>
+                                    <small class="text-muted">{{ application.student.email }}</small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'subjects:detail' application.subject.pk %}">
+                                        {{ application.subject.title }}
+                                    </a>
+                                </td>
+                                <td>{{ application.subject.supervisor.get_full_name }}</td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ application.subject.get_level_display }}
+                                    </span>
+                                </td>
+                                <td>{{ application.created_at|date:"d/m/Y" }}</td>
+                                <td>
+                                    <a href="{% url 'subjects:assignment_create' application.pk %}" 
+                                       class="btn btn-sm btn-success">
+                                        <i class="fas fa-check"></i> Affecter
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted text-center mb-0">
+                    <i class="fas fa-info-circle"></i> Aucune candidature en attente d'affectation.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Affectations existantes -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-list"></i> Toutes les affectations
+                <span class="badge bg-light text-dark">{{ assignments|length }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if assignments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Étudiant</th>
+                                <th>Sujet</th>
+                                <th>Encadreur</th>
+                                <th>Affecté par</th>
+                                <th>Date</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in assignments %}
+                            <tr>
+                                <td>
+                                    <strong>{{ assignment.student.get_full_name }}</strong><br>
+                                    <small class="text-muted">{{ assignment.student.email }}</small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'subjects:detail' assignment.subject.pk %}">
+                                        {{ assignment.subject.title }}
+                                    </a>
+                                </td>
+                                <td>{{ assignment.subject.supervisor.get_full_name }}</td>
+                                <td>{% if assignment.assigned_by %}{{ assignment.assigned_by.get_full_name }}{% else %}Système{% endif %}</td>
+                                <td>{{ assignment.created_at|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if assignment.status == 'active' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elif assignment.status == 'completed' %}
+                                        <span class="badge bg-info">Terminée</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Annulée</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if assignment.status == 'active' %}
+                                        <a href="{% url 'subjects:assignment_cancel' assignment.pk %}" 
+                                           class="btn btn-sm btn-danger">
+                                            <i class="fas fa-times"></i> Annuler
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted text-center mb-0">
+                    <i class="fas fa-info-circle"></i> Aucune affectation pour le moment.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

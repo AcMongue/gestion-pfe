@@ -1,38 +1,182 @@
-{% extends 'base.html' %}
+{% extends 'auth_base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Connexion - Gestion PFE{% endblock %}
+{% block title %}Connexion - GradEase{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .login-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+    
+    .login-illustration {
+        background: var(--primary-gradient);
+        padding: 3rem 2rem;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .login-illustration::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    }
+    
+    .login-illustration h3 {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .login-illustration p {
+        position: relative;
+        z-index: 1;
+        opacity: 0.9;
+    }
+    
+    .login-form-section {
+        padding: 3rem 2.5rem;
+    }
+    
+    .welcome-badge {
+        background: var(--primary-lighter);
+        color: var(--primary-dark);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+    }
+    
+    @media (max-width: 767px) {
+        .login-illustration {
+            padding: 2rem 1.5rem;
+        }
+        
+        .login-form-section {
+            padding: 2rem 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-sign-in-alt"></i> Connexion
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        {{ form|crispy }}
-                        
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-sign-in-alt"></i> Se connecter
-                            </button>
+<div class="login-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                <div class="card login-card shadow-lg">
+                    <div class="row g-0">
+                        <!-- Section Illustration -->
+                        <div class="col-md-5 d-none d-md-block login-illustration">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-graduation-cap fa-4x mb-3"></i>
+                            </div>
+                            <h3 class="fw-bold mb-3">Bienvenue sur GradEase</h3>
+                            <p class="mb-4">
+                                Plateforme de gestion des Projets de Fin d'Études de l'ENSPD
+                            </p>
+                            <div class="mt-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-check-circle me-3 fa-lg"></i>
+                                    <span>Gestion simplifiée des PFE</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-check-circle me-3 fa-lg"></i>
+                                    <span>Suivi en temps réel</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle me-3 fa-lg"></i>
+                                    <span>Interface moderne et intuitive</span>
+                                </div>
+                            </div>
                         </div>
-                    </form>
-                    
-                    <hr class="my-4">
-                    
-                    <div class="text-center">
-                        <p class="mb-0">
-                            Pas encore de compte ? 
-                            <a href="{% url 'users:register' %}">Inscrivez-vous</a>
-                        </p>
+                        
+                        <!-- Section Formulaire -->
+                        <div class="col-md-7 login-form-section">
+                            <span class="welcome-badge">
+                                <i class="fas fa-shield-alt me-1"></i> Connexion sécurisée
+                            </span>
+                            
+                            <h2 class="fw-bold mb-2">Se connecter</h2>
+                            <p class="text-muted mb-4">Accédez à votre espace personnel</p>
+                            
+                            <form method="post" novalidate>
+                                {% csrf_token %}
+                                
+                                <div class="mb-3">
+                                    <label for="id_username" class="form-label fw-semibold">
+                                        <i class="fas fa-user me-2 text-primary"></i>Nom d'utilisateur
+                                    </label>
+                                    <input type="text" 
+                                           name="username" 
+                                           class="form-control form-control-lg" 
+                                           id="id_username" 
+                                           placeholder="Entrez votre nom d'utilisateur"
+                                           required>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="id_password" class="form-label fw-semibold">
+                                        <i class="fas fa-lock me-2 text-primary"></i>Mot de passe
+                                    </label>
+                                    <input type="password" 
+                                           name="password" 
+                                           class="form-control form-control-lg" 
+                                           id="id_password" 
+                                           placeholder="Entrez votre mot de passe"
+                                           required>
+                                </div>
+                                
+                                <div class="d-grid mb-3">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                                    </button>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <a href="{% url 'users:password_reset' %}" class="text-decoration-none text-muted small">
+                                        <i class="fas fa-question-circle me-1"></i>Mot de passe oublié ?
+                                    </a>
+                                </div>
+                            </form>
+                            
+                            <hr class="my-4">
+                            
+                            <div class="text-center">
+                                <p class="mb-0 text-muted">
+                                    Pas encore de compte ? 
+                                    <a href="{% url 'users:register' %}" class="text-decoration-none fw-semibold">
+                                        Inscrivez-vous gratuitement
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
                     </div>
+                </div>
+                
+                <!-- Info supplémentaire -->
+                <div class="text-center mt-4">
+                    <p class="small text-muted">
+                        <i class="fas fa-university me-2"></i>
+                        École Nationale Supérieure Polytechnique de Douala
+                    </p>
                 </div>
             </div>
         </div>

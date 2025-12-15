@@ -8,10 +8,10 @@ class SubjectAdmin(admin.ModelAdmin):
     """Administration pour le modèle Subject."""
     
     list_display = [
-        'title', 'supervisor', 'level', 'domain', 'type', 
+        'title', 'supervisor', 'level', 'filiere', 'type', 
         'status', 'max_students', 'get_applications_count', 'created_at'
     ]
-    list_filter = ['status', 'level', 'domain', 'type', 'created_at']
+    list_filter = ['status', 'level', 'filiere', 'type', 'is_interdisciplinary', 'created_at']
     search_fields = ['title', 'description', 'keywords', 'supervisor__username']
     ordering = ['-created_at']
     date_hierarchy = 'created_at'
@@ -21,7 +21,7 @@ class SubjectAdmin(admin.ModelAdmin):
             'fields': ('title', 'description', 'objectives', 'prerequisites', 'keywords')
         }),
         (_('Classification'), {
-            'fields': ('domain', 'type', 'level')
+            'fields': ('filiere', 'type', 'level', 'is_interdisciplinary', 'additional_filieres')
         }),
         (_('Encadrement'), {
             'fields': ('supervisor', 'co_supervisor', 'max_students')
@@ -44,7 +44,7 @@ class SubjectAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return qs
         # Les encadreurs voient uniquement leurs sujets
-        if request.user.role == 'supervisor':
+        if request.user.role == 'teacher':
             return qs.filter(supervisor=request.user)
         return qs
 
@@ -82,7 +82,7 @@ class ApplicationAdmin(admin.ModelAdmin):
         if request.user.is_superuser or request.user.role == 'admin':
             return qs
         # Les encadreurs voient les candidatures pour leurs sujets
-        if request.user.role == 'supervisor':
+        if request.user.role == 'teacher':
             return qs.filter(subject__supervisor=request.user)
         # Les étudiants voient leurs propres candidatures
         if request.user.role == 'student':
@@ -126,7 +126,7 @@ class AssignmentAdmin(admin.ModelAdmin):
         if request.user.is_superuser or request.user.role == 'admin':
             return qs
         # Les encadreurs voient les affectations pour leurs sujets
-        if request.user.role == 'supervisor':
+        if request.user.role == 'teacher':
             return qs.filter(subject__supervisor=request.user)
         # Les étudiants voient leur propre affectation
         if request.user.role == 'student':

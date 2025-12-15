@@ -22,17 +22,8 @@ class Subject(models.Model):
         ('DOC', 'Doctorat'),
     ]
     
-    DOMAIN_CHOICES = [
-        ('informatique', 'Informatique'),
-        ('reseaux', 'Réseaux et Télécommunications'),
-        ('securite', 'Sécurité Informatique'),
-        ('ia', 'Intelligence Artificielle'),
-        ('web', 'Développement Web'),
-        ('mobile', 'Développement Mobile'),
-        ('data', 'Science des Données'),
-        ('systemes', 'Systèmes Embarqués'),
-        ('autre', 'Autre'),
-    ]
+    # Utiliser les filières ENSPD au lieu des domaines informatiques
+    FILIERE_CHOICES = User.FILIERE_CHOICES
     
     TYPE_CHOICES = [
         ('research', 'Recherche'),
@@ -69,11 +60,13 @@ class Subject(models.Model):
         blank=True
     )
     
-    domain = models.CharField(
-        _('domaine'),
-        max_length=50,
-        choices=DOMAIN_CHOICES,
-        default='informatique'
+    # Filière principale du sujet (automatiquement celle de l'encadreur)
+    filiere = models.CharField(
+        _('filière'),
+        max_length=10,
+        choices=FILIERE_CHOICES,
+        default='GIT',
+        help_text='Filière principale du sujet'
     )
     
     type = models.CharField(
@@ -132,6 +125,28 @@ class Subject(models.Model):
         blank=True
     )
     
+    # Support des binômes
+    allows_pair = models.BooleanField(
+        default=False,
+        verbose_name="Accepte un binôme",
+        help_text="Le sujet peut être réalisé par 2 étudiants"
+    )
+    
+    # Champs pour projets interdisciplinaires
+    is_interdisciplinary = models.BooleanField(
+        _('projet interdisciplinaire'),
+        default=False,
+        help_text='Cochez si ce projet implique plusieurs filières'
+    )
+    
+    # Filières additionnelles pour projets interdisciplinaires
+    additional_filieres = models.JSONField(
+        _('filières additionnelles'),
+        default=list,
+        blank=True,
+        help_text='Autres filières pouvant candidater (projets interdisciplinaires)'
+    )
+    
     # Métadonnées
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -142,7 +157,7 @@ class Subject(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['status', 'level']),
-            models.Index(fields=['domain']),
+            models.Index(fields=['filiere']),
         ]
     
     def __str__(self):
@@ -339,3 +354,193 @@ class Assignment(models.Model):
     
     def __str__(self):
         return f"{self.student.get_full_name()} → {self.subject.title}"
+
+
+class StudentProposal(models.Model):
+    """
+    Modèle représentant une proposition de sujet initiée par un étudiant.
+    L'étudiant propose son idée de projet et choisit des encadreurs potentiels.
+    """
+    
+    STATUS_CHOICES = [
+        ('pending', 'En attente'),
+        ('accepted', 'Acceptée'),
+        ('rejected', 'Rejetée'),
+        ('withdrawn', 'Retirée'),
+    ]
+    
+    FILIERE_CHOICES = Subject.FILIERE_CHOICES
+    TYPE_CHOICES = Subject.TYPE_CHOICES
+    
+    # Informations de l'étudiant
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='proposals',
+        verbose_name=_('étudiant'),
+        limit_choices_to={'role': 'student'}
+    )
+    
+    # Proposition de sujet
+    title = models.CharField(
+        _('titre du projet'),
+        max_length=200,
+        help_text='Titre de votre projet proposé'
+    )
+    
+    description = models.TextField(
+        _('description'),
+        help_text='Description détaillée de votre idée de projet'
+    )
+    
+    objectives = models.TextField(
+        _('objectifs'),
+        help_text='Quels sont les objectifs de ce projet ?'
+    )
+    
+    methodology = models.TextField(
+        _('méthodologie envisagée'),
+        help_text='Comment comptez-vous réaliser ce projet ?',
+        blank=True
+    )
+    
+    technologies = models.CharField(
+        _('technologies'),
+        max_length=500,
+        help_text='Technologies que vous prévoyez d\'utiliser',
+        blank=True
+    )
+    
+    filiere = models.CharField(
+        _('filière'),
+        max_length=10,
+        choices=FILIERE_CHOICES,
+        default='GIT',
+        help_text='Filière de votre projet'
+    )
+    
+    type = models.CharField(
+        _('type'),
+        max_length=20,
+        choices=TYPE_CHOICES,
+        default='development'
+    )
+    
+    # Choix d'encadreurs (jusqu'à 3)
+    preferred_supervisor_1 = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='proposals_as_choice_1',
+        verbose_name=_('1er choix d\'encadreur'),
+        null=True,
+        limit_choices_to={'role': 'supervisor'}
+    )
+    
+    preferred_supervisor_2 = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='proposals_as_choice_2',
+        verbose_name=_('2ème choix d\'encadreur'),
+        null=True,
+        blank=True,
+        limit_choices_to={'role': 'supervisor'}
+    )
+    
+    preferred_supervisor_3 = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='proposals_as_choice_3',
+        verbose_name=_('3ème choix d\'encadreur'),
+        null=True,
+        blank=True,
+        limit_choices_to={'role': 'supervisor'}
+    )
+    
+    # Justification du choix d'encadreurs
+    supervisor_justification = models.TextField(
+        _('justification du choix des encadreurs'),
+        help_text='Pourquoi avez-vous choisi ces encadreurs ?',
+        blank=True
+    )
+    
+    # Statut
+    status = models.CharField(
+        _('statut'),
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
+    
+    # Encadreur qui a accepté (si acceptée)
+    accepted_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='accepted_proposals',
+        verbose_name=_('acceptée par'),
+        null=True,
+        blank=True,
+        limit_choices_to={'role': 'supervisor'}
+    )
+    
+    # Notes de l'encadreur
+    supervisor_comments = models.TextField(
+        _('commentaires de l\'encadreur'),
+        blank=True
+    )
+    
+    # Champs pour projets interdisciplinaires
+    is_interdisciplinary = models.BooleanField(
+        _('projet interdisciplinaire'),
+        default=False,
+        help_text='Mon projet concerne plusieurs filières'
+    )
+    
+    related_filieres = models.JSONField(
+        _('filières associées'),
+        default=list,
+        blank=True,
+        help_text='Autres filières concernées par ce projet'
+    )
+    
+    # Dates
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    reviewed_at = models.DateTimeField(
+        _('date de révision'),
+        null=True,
+        blank=True
+    )
+    
+    class Meta:
+        verbose_name = _('proposition d\'étudiant')
+        verbose_name_plural = _('propositions d\'étudiants')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'student']),
+            models.Index(fields=['status', 'preferred_supervisor_1']),
+        ]
+    
+    def __str__(self):
+        return f"{self.title} - {self.student.get_full_name()}"
+    
+    def get_preferred_supervisors(self):
+        """Retourne la liste des encadreurs choisis."""
+        supervisors = []
+        if self.preferred_supervisor_1:
+            supervisors.append(self.preferred_supervisor_1)
+        if self.preferred_supervisor_2:
+            supervisors.append(self.preferred_supervisor_2)
+        if self.preferred_supervisor_3:
+            supervisors.append(self.preferred_supervisor_3)
+        return supervisors
+    
+    def is_pending(self):
+        """Vérifie si la proposition est en attente."""
+        return self.status == 'pending'
+    
+    def can_be_accepted_by(self, supervisor):
+        """Vérifie si un encadreur peut accepter cette proposition."""
+        return (
+            self.status == 'pending' and
+            supervisor in self.get_preferred_supervisors()
+        )

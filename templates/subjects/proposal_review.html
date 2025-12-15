@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if action == 'accepter' %}Accepter la proposition{% else %}Décliner la proposition{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- En-tête -->
+            <div class="card mb-4">
+                <div class="card-header {% if action == 'accepter' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                    <h2 class="mb-0">
+                        <i class="fas fa-{% if action == 'accepter' %}check-circle{% else %}times-circle{% endif %}"></i>
+                        {% if action == 'accepter' %}
+                            Accepter d'encadrer ce projet
+                        {% else %}
+                            Décliner cette proposition
+                        {% endif %}
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">{{ proposal.title }}</h4>
+                    <p class="text-muted">
+                        Proposé par <strong>{{ proposal.student.get_full_name }}</strong>
+                        ({{ proposal.student.level }} - {{ proposal.student.filiere }})
+                    </p>
+                    <p><strong>Filière:</strong> {{ proposal.get_filiere_display }}</p>
+                    <p><strong>Type:</strong> {{ proposal.get_type_display }}</p>
+                </div>
+            </div>
+
+            <!-- Résumé de la proposition -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Résumé de la Proposition</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ proposal.description|truncatewords:50 }}</p>
+                    <a href="{% url 'subjects:proposal_detail' proposal.pk %}" target="_blank">
+                        Voir la proposition complète <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Formulaire de confirmation -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-{% if action == 'accepter' %}pen{% else %}comment{% endif %}"></i>
+                        {% if action == 'accepter' %}Commentaires (optionnel){% else %}Raison du refus{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="comments" class="form-label">
+                                {% if action == 'accepter' %}
+                                    Vos commentaires ou suggestions pour améliorer le projet:
+                                {% else %}
+                                    Expliquez à l'étudiant pourquoi vous ne pouvez pas encadrer ce projet:
+                                {% endif %}
+                            </label>
+                            <textarea 
+                                name="comments" 
+                                id="comments" 
+                                class="form-control" 
+                                rows="5"
+                                {% if action == 'rejeter' %}required{% endif %}
+                            ></textarea>
+                            {% if action == 'accepter' %}
+                            <small class="form-text text-muted">
+                                Par exemple: points à approfondir, ajustements nécessaires, etc.
+                            </small>
+                            {% else %}
+                            <small class="form-text text-muted">
+                                Soyez constructif: suggérez des améliorations ou orientez l'étudiant vers d'autres encadreurs.
+                            </small>
+                            {% endif %}
+                        </div>
+
+                        {% if action == 'accepter' %}
+                        <!-- Avertissement acceptation -->
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-info-circle"></i> Ce qui se passera après acceptation:
+                            </h6>
+                            <ul class="mb-0">
+                                <li>Un sujet sera automatiquement créé à partir de cette proposition</li>
+                                <li>L'étudiant sera assigné à ce sujet avec vous comme encadreur</li>
+                                <li>Un projet sera créé en statut "En attente de cadrage"</li>
+                                <li>Vous devrez planifier une réunion de cadrage avec l'étudiant</li>
+                                <li>L'étudiant sera notifié immédiatement</li>
+                            </ul>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="confirm" required>
+                            <label class="form-check-label" for="confirm">
+                                Je confirme vouloir encadrer cet étudiant sur ce projet
+                            </label>
+                        </div>
+                        {% else %}
+                        <!-- Avertissement refus -->
+                        <div class="alert alert-warning">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-exclamation-triangle"></i> Attention:
+                            </h6>
+                            <ul class="mb-0">
+                                <li>L'étudiant sera notifié de votre refus</li>
+                                <li>Vos commentaires lui seront transmis</li>
+                                <li>Il pourra modifier sa proposition ou en soumettre une nouvelle</li>
+                                <li>Si d'autres encadreurs sont choisis, ils pourront toujours accepter</li>
+                            </ul>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="confirm" required>
+                            <label class="form-check-label" for="confirm">
+                                Je confirme décliner cette proposition
+                            </label>
+                        </div>
+                        {% endif %}
+
+                        <!-- Boutons -->
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'subjects:proposal_detail' proposal.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                            <button type="submit" class="btn btn-{% if action == 'accepter' %}success{% else %}danger{% endif %}">
+                                <i class="fas fa-{% if action == 'accepter' %}check{% else %}times{% endif %}"></i>
+                                {% if action == 'accepter' %}
+                                    Confirmer l'acceptation
+                                {% else %}
+                                    Confirmer le refus
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Informations complémentaires -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-question-circle"></i> Besoin d'aide?</h5>
+                </div>
+                <div class="card-body">
+                    {% if action == 'accepter' %}
+                    <p><strong>Vous hésitez?</strong></p>
+                    <ul>
+                        <li>Vérifiez que le sujet correspond à votre expertise</li>
+                        <li>Évaluez votre disponibilité pour encadrer un nouveau projet</li>
+                        <li>Contactez l'étudiant pour discuter avant d'accepter</li>
+                        <li>Consultez les autres propositions que vous avez reçues</li>
+                    </ul>
+                    {% else %}
+                    <p><strong>Alternatives au refus:</strong></p>
+                    <ul>
+                        <li>Proposez des modifications à l'étudiant</li>
+                        <li>Suggérez un autre encadreur plus adapté</li>
+                        <li>Indiquez des ressources pour améliorer la proposition</li>
+                        <li>Proposez un rendez-vous pour en discuter</li>
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

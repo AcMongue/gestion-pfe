@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Planning des salles - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-door-open"></i> Planning des salles de soutenance</h2>
+        <a href="{% url 'defenses:list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action="" class="row g-3">
+                <div class="col-md-5">
+                    <label for="room" class="form-label">Sélectionner une salle</label>
+                    <select name="room" id="room" class="form-select">
+                        <option value="">Toutes les salles</option>
+                        {% for room in rooms %}
+                            <option value="{{ room.id }}" {% if selected_room and selected_room.id == room.id %}selected{% endif %}>
+                                {{ room.name }} - {{ room.building }} ({{ room.get_filiere_display }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="date" class="form-label">Sélectionner une date</label>
+                    <select name="date" id="date" class="form-select">
+                        <option value="">Toutes les dates</option>
+                        {% for date in available_dates %}
+                            <option value="{{ date }}" {% if selected_date == date %}selected{% endif %}>
+                                {{ date|date:"l d F Y" }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Afficher
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if schedule %}
+        <!-- Planning par salle -->
+        {% for room_id, room_data in schedule.items %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-door-open"></i> 
+                    {{ room_data.room.name }} - {{ room_data.room.building }}
+                    <span class="badge bg-light text-dark ms-2">{{ room_data.room.get_filiere_display }}</span>
+                    <span class="badge bg-secondary ms-2">Capacité: {{ room_data.room.capacity }}</span>
+                </h4>
+            </div>
+            <div class="card-body">
+                {% for date, defenses in room_data.dates.items %}
+                <div class="mb-4">
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="fas fa-calendar-day"></i> {{ date|date:"l d F Y" }}
+                        <span class="badge bg-info">{{ defenses|length }} soutenance(s)</span>
+                    </h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Heure</th>
+                                    <th>Durée</th>
+                                    <th>Projet</th>
+                                    <th>Étudiant</th>
+                                    <th>Encadreur</th>
+                                    <th>Jury</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for defense in defenses %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ defense.time|time:"H:i" }}</strong>
+                                    </td>
+                                    <td>{{ defense.duration }} min</td>
+                                    <td>
+                                        <strong>{{ defense.project.title|truncatewords:8 }}</strong>
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-user"></i>
+                                        {{ defense.project.assignment.student.get_full_name }}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-chalkboard-teacher"></i>
+                                        {{ defense.project.assignment.subject.supervisor.get_full_name }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ defense.jury_members.count }} membre(s)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if defense.status == 'completed' %}
+                                            <span class="badge bg-success">Terminée</span>
+                                        {% elif defense.status == 'scheduled' %}
+                                            <span class="badge bg-primary">Programmée</span>
+                                        {% elif defense.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Annulée</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ defense.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'defenses:detail' defense.pk %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> Détails
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            <i class="fas fa-info-circle fa-3x mb-3"></i>
+            <h4>Aucune soutenance planifiée</h4>
+            <p class="mb-0">
+                {% if selected_room or selected_date %}
+                    Aucune soutenance ne correspond aux critères de filtrage sélectionnés.
+                {% else %}
+                    Il n'y a actuellement aucune soutenance planifiée avec une salle assignée.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.table td, .table th {
+    vertical-align: middle;
+}
+</style>
+{% endblock %}

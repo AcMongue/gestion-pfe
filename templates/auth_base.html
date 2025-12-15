@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GradEase - Gestion PFE ENSPD{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.0">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-light">
+    <!-- Page Loader -->
+    <div id="page-loader" class="page-loader">
+        <div class="loader-content">
+            <div class="spinner-wrapper">
+                <div class="spinner"></div>
+                <i class="fas fa-graduation-cap loader-icon"></i>
+            </div>
+            <p class="loader-text">Chargement...</p>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div id="page-content" class="page-content">
+    <!-- Simple Header -->
+    <nav class="navbar navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-graduation-cap text-primary"></i> 
+                <span class="fw-bold text-primary">GradEase</span>
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-home"></i> Accueil
+            </a>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Simple Footer -->
+    <footer class="text-center py-4 mt-5">
+        <div class="container">
+            <p class="text-muted mb-0">&copy; 2025 ENSPD - GradEase</p>
+            <p class="text-muted small">Plateforme de gestion des Projets de Fin d'Études</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Page Loader & Transition Script -->
+    <script>
+        // Variables globales pour le loader
+        let loaderTimeout;
+        let isNavigating = false;
+        
+        // Fonction pour afficher le contenu et cacher le loader
+        function showContent() {
+            const loader = document.getElementById('page-loader');
+            const content = document.getElementById('page-content');
+            
+            if (loader) {
+                loader.classList.add('fade-out');
+                loader.style.display = 'none';
+            }
+            
+            if (content) {
+                content.classList.remove('fade-out-fast');
+                content.classList.add('fade-in');
+                content.style.opacity = '1';
+            }
+            
+            isNavigating = false;
+            clearTimeout(loaderTimeout);
+        }
+        
+        // Hide loader when page is fully loaded
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                showContent();
+            }, 300);
+        });
+        
+        // CRUCIAL: Gérer le retour arrière et le cache du navigateur
+        window.addEventListener('pageshow', function(event) {
+            // event.persisted = true signifie que la page vient du cache (bouton retour)
+            if (event.persisted) {
+                console.log('Page restaurée depuis le cache - affichage du contenu');
+                showContent();
+            }
+        });
+        
+        // Forcer l'affichage si le DOM est déjà chargé
+        if (document.readyState === 'complete') {
+            showContent();
+        }
+        
+        // Show loader on page navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('a:not([target="_blank"]):not([href^="#"]):not([data-bs-toggle])');
+            const loader = document.getElementById('page-loader');
+            const content = document.getElementById('page-content');
+            
+            links.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    
+                    // Vérifier si c'est un lien interne valide
+                    if (href && 
+                        !href.startsWith('http://') && 
+                        !href.startsWith('https://') && 
+                        !href.startsWith('mailto:') &&
+                        !href.startsWith('tel:') &&
+                        !href.startsWith('javascript:') &&
+                        href !== '#') {
+                        
+                        isNavigating = true;
+                        
+                        if (content) {
+                            content.classList.add('fade-out-fast');
+                        }
+                        
+                        if (loader) {
+                            loader.style.display = 'flex';
+                            loader.classList.remove('fade-out');
+                            loader.classList.add('fade-in');
+                        }
+                        
+                        // Sécurité: forcer la fermeture après 5 secondes
+                        loaderTimeout = setTimeout(function() {
+                            if (isNavigating) {
+                                console.warn('Loader timeout - fermeture forcée');
+                                showContent();
+                            }
+                        }, 5000);
+                    }
+                });
+            });
+        });
+        
+        // Au cas où l'utilisateur utilise le bouton retour
+        window.addEventListener('popstate', function() {
+            console.log('Navigation arrière détectée');
+            showContent();
+        });
+        
+        // Détecter si la page est visible
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // La page redevient visible, s'assurer que le contenu est affiché
+                const content = document.getElementById('page-content');
+                if (content && content.style.opacity === '0') {
+                    showContent();
+                }
+            }
+        });
+    </script>
+            
+            links.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    
+                    // Only show loader for internal navigation
+                    if (href && !href.startsWith('http') && !href.startsWith('mailto')) {
+                        content.classList.add('fade-out-fast');
+                        loader.style.display = 'flex';
+                        loader.classList.remove('fade-out');
+                        
+                        setTimeout(function() {
+                            loader.classList.add('fade-in');
+                        }, 50);
+                    }
+                });
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+    </div> <!-- End page-content -->
+</body>
+</html>

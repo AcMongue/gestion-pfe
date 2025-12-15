@@ -24,7 +24,7 @@
                             <span class="badge bg-secondary">{{ user.filiere }}</span>
                         </p>
                         <p class="mb-0"><strong>Matricule:</strong> {{ user.matricule }}</p>
-                    {% elif user.is_supervisor %}
+                    {% elif user.is_teacher %}
                         <p>
                             <span class="badge bg-success">{{ user.grade }}</span>
                         </p>
@@ -33,9 +33,14 @@
                     
                     <hr>
                     
-                    <a href="{% url 'users:profile_edit' %}" class="btn btn-primary">
-                        <i class="fas fa-edit"></i> Modifier le profil
-                    </a>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'users:profile_edit' %}" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Modifier le profil
+                        </a>
+                        <a href="{% url 'users:change_password' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-lock"></i> Changer mon mot de passe
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

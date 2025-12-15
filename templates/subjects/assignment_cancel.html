@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Annuler l'affectation - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-times-circle"></i> Annuler l'affectation
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Attention :</strong> Cette action annulera l'affectation et remettra le sujet 
+                        en statut "Publié", permettant de nouvelles candidatures.
+                    </div>
+
+                    <h5 class="mb-3">Détails de l'affectation à annuler</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Étudiant :</div>
+                        <div class="col-md-8">
+                            {{ assignment.student.get_full_name }}
+                            <br>
+                            <small class="text-muted">{{ assignment.student.email }}</small>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Sujet :</div>
+                        <div class="col-md-8">
+                            <strong>{{ assignment.subject.title }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Encadreur :</div>
+                        <div class="col-md-8">
+                            {{ assignment.subject.supervisor.get_full_name }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Affecté le :</div>
+                        <div class="col-md-8">
+                            {{ assignment.created_at|date:"d/m/Y à H:i" }}
+                            {% if assignment.assigned_by %}
+                                <br>
+                                <small>Par {{ assignment.assigned_by.get_full_name }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if assignment.notes %}
+                    <div class="mb-3">
+                        <strong>Notes :</strong>
+                        <div class="border rounded p-3 mt-2 bg-light">
+                            {{ assignment.notes }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'subjects:assignments_manage' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times"></i> Confirmer l'annulation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

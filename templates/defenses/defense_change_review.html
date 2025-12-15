@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Examiner la demande - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clipboard-check"></i> Examiner la demande de modification
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Informations actuelles -->
+                    <h5 class="text-primary">Planification actuelle</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Projet:</strong></p>
+                            <p>{{ change_request.defense.project.title }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Étudiant:</strong></p>
+                            <p>{{ change_request.defense.project.assignment.student.get_full_name }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Date:</strong></p>
+                            <p>{{ change_request.defense.date|date:"d/m/Y" }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Heure:</strong></p>
+                            <p>{{ change_request.defense.time }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Lieu:</strong></p>
+                            <p>{{ change_request.defense.room }}</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Demande de modification -->
+                    <h5 class="text-warning">Modifications proposées</h5>
+                    <div class="alert alert-warning">
+                        <p class="mb-2"><strong>Demandé par:</strong> {{ change_request.requested_by.get_full_name }} 
+                            ({{ change_request.requested_by.get_role_display }})</p>
+                        <p class="mb-0"><strong>Le:</strong> {{ change_request.created_at|date:"d/m/Y à H:i" }}</p>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Nouvelle date:</strong></p>
+                            <p>{% if change_request.proposed_date %}{{ change_request.proposed_date|date:"d/m/Y" }}{% else %}<em class="text-muted">Pas de changement</em>{% endif %}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Nouvelle heure:</strong></p>
+                            <p>{% if change_request.proposed_time %}{{ change_request.proposed_time }}{% else %}<em class="text-muted">Pas de changement</em>{% endif %}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Nouveau lieu:</strong></p>
+                            <p>{% if change_request.proposed_location %}{{ change_request.proposed_location }}{% else %}<em class="text-muted">Pas de changement</em>{% endif %}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <p class="mb-1"><strong>Motif:</strong></p>
+                        <div class="border rounded p-3 bg-light">
+                            {{ change_request.reason|linebreaks }}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Formulaire de décision -->
+                    <h5 class="text-success">Votre décision</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Si vous approuvez, les modifications seront automatiquement appliquées à la soutenance.
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'defenses:planning' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Enregistrer la décision
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

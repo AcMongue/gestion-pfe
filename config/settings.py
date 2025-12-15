@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     
     # Local apps
+    'config.apps.ConfigConfig',
     'users.apps.UsersConfig',
     'subjects.apps.SubjectsConfig',
     'projects.apps.ProjectsConfig',
@@ -157,3 +158,25 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 LOGIN_URL = 'users:login'
 LOGIN_REDIRECT_URL = 'users:dashboard'
 LOGOUT_REDIRECT_URL = 'users:login'
+
+# Email Configuration
+USE_GMAIL = os.getenv('EMAIL_USE_GMAIL', 'False') == 'True'
+
+if USE_GMAIL and os.getenv('EMAIL_HOST_USER') and os.getenv('EMAIL_HOST_PASSWORD'):
+    # Configuration Gmail pour l'envoi d'emails
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
+else:
+    # Mode développement : afficher les emails dans la console
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@gradease.enspd.cm'
+
+EMAIL_SUBJECT_PREFIX = '[GradEase] '
+
+# Password Reset Settings
+PASSWORD_RESET_TIMEOUT = 3600  # 1 heure en secondes

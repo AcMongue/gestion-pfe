@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Proposer mon propre sujet{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- En-tête -->
+            <div class="card mb-4 border-primary">
+                <div class="card-body bg-primary bg-opacity-10">
+                    <h2 class="mb-3">
+                        <i class="fas fa-lightbulb"></i> Proposer mon propre sujet de PFE
+                    </h2>
+                    <p class="lead mb-2">
+                        Vous avez une idée de projet ? Proposez-la et choisissez vos encadreurs préférés !
+                    </p>
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Comment ça marche ?</strong>
+                        <ol class="mb-0 mt-2">
+                            <li>Décrivez votre idée de projet en détail</li>
+                            <li>Choisissez jusqu'à 3 encadreurs potentiels</li>
+                            <li>Les encadreurs seront notifiés</li>
+                            <li>Un encadreur peut accepter d'encadrer votre projet</li>
+                            <li>Une affectation sera créée automatiquement</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulaire -->
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit"></i> Formulaire de proposition
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Informations de base -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-file-alt"></i> Informations de base
+                            </h5>
+                            {{ form.title|as_crispy_field }}
+                            {{ form.filiere|as_crispy_field }}
+                            {{ form.type|as_crispy_field }}
+                        </div>
+
+                        <!-- Description du projet -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-align-left"></i> Description du projet
+                            </h5>
+                            {{ form.description|as_crispy_field }}
+                            {{ form.objectives|as_crispy_field }}
+                            {{ form.methodology|as_crispy_field }}
+                            {{ form.technologies|as_crispy_field }}
+                        </div>
+
+                        <!-- Choix des encadreurs -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-users"></i> Choix des encadreurs
+                            </h5>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Important :</strong> Choisissez des encadreurs dont l'expertise correspond à votre projet.
+                                Au moins un encadreur est obligatoire.
+                            </div>
+                            {{ form.preferred_supervisor_1|as_crispy_field }}
+                            {{ form.preferred_supervisor_2|as_crispy_field }}
+                            {{ form.preferred_supervisor_3|as_crispy_field }}
+                            {{ form.supervisor_justification|as_crispy_field }}
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'subjects:my_proposals' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Soumettre ma proposition
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Conseils -->
+            <div class="card mt-4 border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb"></i> Conseils pour une bonne proposition
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li><strong>Soyez précis :</strong> Expliquez clairement votre idée et ses objectifs</li>
+                        <li><strong>Soyez réaliste :</strong> Proposez un projet réalisable dans le temps imparti</li>
+                        <li><strong>Montrez votre motivation :</strong> Expliquez pourquoi ce projet vous intéresse</li>
+                        <li><strong>Choisissez bien vos encadreurs :</strong> Sélectionnez des professeurs dont l'expertise correspond à votre projet</li>
+                        <li><strong>Justifiez vos choix :</strong> Expliquez pourquoi vous avez choisi ces encadreurs</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

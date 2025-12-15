@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestion des Salles - Gestion PFE{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-door-open"></i> Gestion des Salles</h2>
+        <div>
+            <a href="{% url 'defenses:room_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Créer une salle
+            </a>
+            <a href="{% url 'users:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+            </a>
+        </div>
+    </div>
+
+    {% if rooms %}
+        <!-- Grouper par filière -->
+        {% regroup rooms by filiere as rooms_by_filiere %}
+        
+        {% for filiere_group in rooms_by_filiere %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-building"></i> 
+                    {{ filiere_group.grouper }} - {{ filiere_group.list.0.get_filiere_display }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nom de la salle</th>
+                                <th>Bâtiment</th>
+                                <th>Capacité</th>
+                                <th>Disponibilité</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for room in filiere_group.list %}
+                            <tr>
+                                <td>
+                                    <strong>{{ room.name }}</strong>
+                                </td>
+                                <td>{{ room.building }}</td>
+                                <td>
+                                    <i class="fas fa-users"></i> {{ room.capacity }} places
+                                </td>
+                                <td>
+                                    {% if room.is_available %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle"></i> Disponible
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle"></i> Indisponible
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'defenses:room_edit' room.pk %}" 
+                                       class="btn btn-sm btn-warning" 
+                                       title="Modifier">
+                                        <i class="fas fa-edit"></i> Modifier
+                                    </a>
+                                    <a href="{% url 'defenses:room_delete' room.pk %}" 
+                                       class="btn btn-sm btn-danger" 
+                                       title="Supprimer">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            <strong>Total :</strong> {{ rooms.count }} salle(s) 
+            {% if not is_general_admin %}
+                dans votre filière
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning text-center" role="alert">
+            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+            <h4>Aucune salle disponible</h4>
+            <p class="mb-0">
+                Commencez par créer votre première salle en cliquant sur le bouton "Créer une salle" ci-dessus.
+            </p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.table td, .table th {
+    vertical-align: middle;
+}
+
+.card-header h4 {
+    margin: 0;
+}
+</style>
+{% endblock %}

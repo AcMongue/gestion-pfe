@@ -18,6 +18,12 @@
                 <a href="{% url 'subjects:my_applications' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-paper-plane"></i> Mes candidatures
                 </a>
+                <a href="{% url 'subjects:proposal_create' %}" class="list-group-item list-group-item-action text-success">
+                    <i class="fas fa-lightbulb"></i> <strong>Proposer un sujet</strong>
+                </a>
+                <a href="{% url 'subjects:my_proposals' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-clipboard-list"></i> Mes propositions
+                </a>
                 <a href="{% url 'projects:list' %}" class="list-group-item list-group-item-action">
                     <i class="fas fa-project-diagram"></i> Mes projets
                 </a>
@@ -53,17 +59,17 @@
                             <h5 class="card-title">
                                 <i class="fas fa-book"></i> Sujets disponibles
                             </h5>
-                            <h2 class="mb-0">0</h2>
+                            <h2 class="mb-0">{{ available_subjects_count }}</h2>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card text-white bg-success">
+                    <div class="card text-white bg-{% if assignment %}success{% else %}secondary{% endif %}">
                         <div class="card-body">
                             <h5 class="card-title">
                                 <i class="fas fa-check-circle"></i> Projet assigné
                             </h5>
-                            <h2 class="mb-0">Non</h2>
+                            <h2 class="mb-0">{% if assignment %}Oui{% else %}Non{% endif %}</h2>
                         </div>
                     </div>
                 </div>
@@ -71,9 +77,9 @@
                     <div class="card text-white bg-warning">
                         <div class="card-body">
                             <h5 class="card-title">
-                                <i class="fas fa-tasks"></i> Progression
+                                <i class="fas fa-tasks"></i> Candidatures
                             </h5>
-                            <h2 class="mb-0">0%</h2>
+                            <h2 class="mb-0">{{ applications_count }}</h2>
                         </div>
                     </div>
                 </div>
@@ -81,50 +87,130 @@
                     <div class="card text-white bg-info">
                         <div class="card-body">
                             <h5 class="card-title">
-                                <i class="fas fa-envelope"></i> Messages
+                                <i class="fas fa-bell"></i> Notifications
                             </h5>
-                            <h2 class="mb-0">0</h2>
+                            <h2 class="mb-0">{{ unread_notifications }}</h2>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Notifications récentes -->
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="card mb-4">
+            <!-- Mon projet actuel -->
+            {% if assignment %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-project-diagram"></i> Mon Projet Actuel
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h4>{{ assignment.subject.title }}</h4>
+                            <p class="text-muted">
+                                <strong>Encadreur:</strong> {{ assignment.subject.supervisor.get_full_name }}<br>
+                                <strong>Affecté le:</strong> {{ assignment.assigned_at|date:"d/m/Y" }}
+                            </p>
+                            {% if assignment.project %}
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Progression:</strong></label>
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ assignment.project.progress }}%" 
+                                         aria-valuenow="{{ assignment.project.progress }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ assignment.project.progress }}%
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{% url 'projects:detail' assignment.project.pk %}" class="btn btn-success">
+                                <i class="fas fa-eye"></i> Voir mon projet
+                            </a>
+                            {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Votre projet n'est pas encore créé.</strong>
+                                <p class="mb-0 mt-2">Vous avez une affectation mais le projet n'a pas encore été créé.</p>
+                            </div>
+                            <a href="{% url 'projects:create' %}?assignment={{ assignment.id }}" class="btn btn-primary">
+                                <i class="fas fa-plus-circle"></i> Créer mon projet
+                            </a>
+                            <small class="d-block text-muted mt-2">
+                                Le projet sera pré-rempli avec les informations de votre affectation.
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Pas de projet assigné -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-exclamation-triangle"></i> Aucun projet assigné
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Vous n'avez pas encore de projet assigné. Consultez les sujets disponibles et postulez!</p>
+                            <a href="{% url 'subjects:list' %}" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Voir les sujets disponibles
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Mes candidatures -->
+            {% if applications %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
                         <div class="card-header bg-primary text-white">
                             <h5 class="mb-0">
-                                <i class="fas fa-bell"></i> Notifications récentes
+                                <i class="fas fa-paper-plane"></i> Mes Candidatures ({{ applications_count }})
                             </h5>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle"></i> 
-                                Bienvenue sur la plateforme de gestion PFE !
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Sujet</th>
+                                            <th>Encadreur</th>
+                                            <th>Date</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for app in applications %}
+                                        <tr>
+                                            <td>{{ app.subject.title }}</td>
+                                            <td>{{ app.subject.supervisor.get_full_name }}</td>
+                                            <td>{{ app.created_at|date:"d/m/Y" }}</td>
+                                            <td>
+                                                {% if app.status == 'pending' %}
+                                                    <span class="badge bg-warning">En attente</span>
+                                                {% elif app.status == 'accepted' %}
+                                                    <span class="badge bg-success">Acceptée</span>
+                                                {% elif app.status == 'rejected' %}
+                                                    <span class="badge bg-danger">Rejetée</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
-                            <p class="text-muted text-center">
-                                Aucune notification pour le moment.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header bg-info text-white">
-                            <h5 class="mb-0">
-                                <i class="fas fa-calendar"></i> Échéances
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="text-muted text-center">
-                                Aucune échéance à venir.
-                            </p>
                         </div>
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
