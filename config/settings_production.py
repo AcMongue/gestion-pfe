@@ -1,19 +1,24 @@
 """
 Configuration Django pour déploiement sur PythonAnywhere
 """
-from .settings import *
 import os
-
-# Charger les variables d'environnement depuis .env
 from pathlib import Path
+
+# Charger les variables d'environnement depuis .env AVANT l'import de settings
 env_file = Path(__file__).resolve().parent.parent / '.env'
 if env_file.exists():
-    with open(env_file) as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith('#') and '=' in line:
-                key, value = line.split('=', 1)
-                os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+    try:
+        with open(env_file) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+    except Exception as e:
+        print(f"Erreur lors du chargement de .env: {e}")
+
+# Import après le chargement des variables d'environnement
+from .settings import *
 
 # SÉCURITÉ
 DEBUG = False

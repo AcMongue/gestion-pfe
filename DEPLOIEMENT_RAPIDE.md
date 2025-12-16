@@ -244,21 +244,27 @@ mysqldump -u $USERNAME -h $USERNAME.mysql.pythonanywhere-services.com -p $USERNA
 
 ### Erreur "collectstatic command not found"
 
-Problème de chargement des settings. Vérifiez:
+Problème de chargement des settings. Suivez ces étapes:
 
 ```bash
-# 1. Fichier .env existe ?
-ls -la .env
+# 1. Récupérez la dernière version
+cd ~/gestion-pfe
+git pull origin main
 
-# 2. Testez le chargement
-python -c "import os; os.environ['DJANGO_SETTINGS_MODULE']='config.settings_production'; import django; django.setup(); print('OK')"
-
-# 3. Si erreur d'import, vérifiez les dépendances
-pip install python-decouple
-pip list | grep -i django
-
-# 4. Vérifiez le contenu du .env
+# 2. Vérifiez le fichier .env (doit exister et être bien formaté)
 cat .env
+# Format: VARIABLE='valeur' (avec guillemets simples)
+
+# 3. Testez avec python manage.py check
+python manage.py check --settings=config.settings_production
+
+# 4. Si ça ne marche toujours pas, essayez sans --settings
+python manage.py collectstatic --noinput
+# (Utilisera config.settings par défaut qui fonctionne en dev)
+
+# 5. Ou spécifiez le module directement
+export DJANGO_SETTINGS_MODULE=config.settings_production
+python manage.py collectstatic --noinput
 ```
 
 ### Erreur 500
