@@ -88,9 +88,13 @@ Sauvegardez: `Ctrl+O` → `Entrée` → `Ctrl+X`
 # Remplacez automatiquement votre username partout
 sed -i "s/votre-username/$USERNAME/g" config/settings_production.py
 
-# Vérifiez
-grep "ALLOWED_HOSTS" config/settings_production.py
-# Devrait afficher: 'ac7.pythonanywhere.com' (ou votre username)
+# Vérifiez avec plus de contexte
+grep -A 3 "ALLOWED_HOSTS" config/settings_production.py
+# Devrait afficher:
+# ALLOWED_HOSTS = [
+#     'ac7.pythonanywhere.com',
+#     'www.ac7.pythonanywhere.com',
+# ]
 ```
 
 ---
