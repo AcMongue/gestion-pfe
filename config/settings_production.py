@@ -4,13 +4,24 @@ Configuration Django pour déploiement sur PythonAnywhere
 from .settings import *
 import os
 
+# Charger les variables d'environnement depuis .env
+from pathlib import Path
+env_file = Path(__file__).resolve().parent.parent / '.env'
+if env_file.exists():
+    with open(env_file) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+
 # SÉCURITÉ
 DEBUG = False
 
 # Remplacez par votre domaine PythonAnywhere
 ALLOWED_HOSTS = [
-    'votre-username.pythonanywhere.com',
-    'www.votre-username.pythonanywhere.com',
+    'ac7.pythonanywhere.com',
+    'www.ac7.pythonanywhere.com',
 ]
 
 # SECRET KEY - À générer et configurer via variable d'environnement
@@ -20,10 +31,10 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', SECRET_KEY)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'votre-username$gestionpfe',  # Remplacez votre-username
-        'USER': 'votre-username',  # Remplacez votre-username
+        'NAME': 'ac7$gestionpfe',  # Remplacez votre-username
+        'USER': 'ac7',  # Remplacez votre-username
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),  # À configurer
-        'HOST': 'votre-username.mysql.pythonanywhere-services.com',
+        'HOST': 'ac7.mysql.pythonanywhere-services.com',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
@@ -32,11 +43,11 @@ DATABASES = {
 }
 
 # Fichiers statiques
-STATIC_ROOT = '/home/votre-username/gestion-pfe/staticfiles'  # Remplacez votre-username
+STATIC_ROOT = '/home/ac7/gestion-pfe/staticfiles'  # Remplacez votre-username
 STATIC_URL = '/static/'
 
 # Fichiers média
-MEDIA_ROOT = '/home/votre-username/gestion-pfe/media'  # Remplacez votre-username
+MEDIA_ROOT = '/home/ac7/gestion-pfe/media'  # Remplacez votre-username
 MEDIA_URL = '/media/'
 
 # Email - Configuration Gmail pour production

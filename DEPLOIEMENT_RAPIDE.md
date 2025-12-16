@@ -242,6 +242,25 @@ mysqldump -u $USERNAME -h $USERNAME.mysql.pythonanywhere-services.com -p $USERNA
 
 ## ⚠️ DÉPANNAGE RAPIDE
 
+### Erreur "collectstatic command not found"
+
+Problème de chargement des settings. Vérifiez:
+
+```bash
+# 1. Fichier .env existe ?
+ls -la .env
+
+# 2. Testez le chargement
+python -c "import os; os.environ['DJANGO_SETTINGS_MODULE']='config.settings_production'; import django; django.setup(); print('OK')"
+
+# 3. Si erreur d'import, vérifiez les dépendances
+pip install python-decouple
+pip list | grep -i django
+
+# 4. Vérifiez le contenu du .env
+cat .env
+```
+
 ### Erreur 500
 ```bash
 # Vérifier les logs
