@@ -48,7 +48,7 @@ chmod -R 755 media staticfiles logs
 python -c "from django.core.management.utils import get_random_secret_key; print('SECRET_KEY:', get_random_secret_key())"
 # COPIEZ LA CLÉ AFFICHÉE ⬆️
 ```
-
+31nx8k!$!^2^=^+)k(@dr@ux=k+=3cpvhrhvz+5+7h$3g3$g8m
 ---
 
 ### 4️⃣ Créer le fichier .env
@@ -68,6 +68,10 @@ EMAIL_HOST_USER='votre-email@gmail.com'
 EMAIL_HOST_PASSWORD='mot-de-passe-app-gmail'
 ```
 
+DJANGO_SECRET_KEY='31nx8k!$!^2^=^+)k(@dr@ux=k+=3cpvhrhvz+5+7h$3g3$g8m'
+DB_PASSWORD='mysql2003'
+EMAIL_HOST_USER='ac7dev25@gmail.com'
+EMAIL_HOST_PASSWORD='hxpk rkai aynu hcck'
 **Pour Gmail:**
 1. Allez sur https://myaccount.google.com/security
 2. Activez la validation en 2 étapes
@@ -86,7 +90,7 @@ sed -i "s/votre-username/$USERNAME/g" config/settings_production.py
 
 # Vérifiez
 grep "ALLOWED_HOSTS" config/settings_production.py
-# Devrait afficher: 'VOTRE-USERNAME.pythonanywhere.com'
+# Devrait afficher: 'ac7.pythonanywhere.com' (ou votre username)
 ```
 
 ---
