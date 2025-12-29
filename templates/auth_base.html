@@ -182,27 +182,7 @@
             }
         });
     </script>
-            
-            links.forEach(function(link) {
-                link.addEventListener('click', function(e) {
-                    const href = this.getAttribute('href');
-                    
-                    // Only show loader for internal navigation
-                    if (href && !href.startsWith('http') && !href.startsWith('mailto')) {
-                        content.classList.add('fade-out-fast');
-                        loader.style.display = 'flex';
-                        loader.classList.remove('fade-out');
-                        
-                        setTimeout(function() {
-                            loader.classList.add('fade-in');
-                        }, 50);
-                    }
-                });
-            });
-        });
-    </script>
     
     {% block extra_js %}{% endblock %}
-    </div> <!-- End page-content -->
 </body>
 </html>
