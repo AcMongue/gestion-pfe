@@ -92,7 +92,7 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': '/home/votre-username/gestion-pfe/logs/django.log',
+            'filename': '/home/ac7/gestion-pfe/logs/django.log',
             'formatter': 'verbose',
         },
         'console': {
