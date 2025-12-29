@@ -15,7 +15,7 @@ if env_file.exists():
                     key, value = line.split('=', 1)
                     os.environ.setdefault(key.strip(), value.strip().strip("'\""))
     except Exception as e:
-        print(f"Erreur lors du chargement de .env: {e}")
+        pass  # Silencieux en production
 
 # Import après le chargement des variables d'environnement
 from .settings import *
