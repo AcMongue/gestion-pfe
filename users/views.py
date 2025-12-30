@@ -503,9 +503,12 @@ def password_reset_request(request):
             # Créer la version HTML
             html_content = render_to_string("users/password_reset_email.html", context)
             
+            email_sent = False
             try:
                 from django.conf import settings
                 import time
+                import logging
+                logger = logging.getLogger(__name__)
                 
                 # Créer un email multipart (texte + HTML)
                 email_message = EmailMultiAlternatives(
@@ -516,23 +519,31 @@ def password_reset_request(request):
                 )
                 email_message.attach_alternative(html_content, "text/html")
                 
-                # Retry logic : 3 tentatives avec délai
-                max_retries = 3
+                # Retry logic : 5 tentatives avec délai progressif
+                max_retries = 5
                 for attempt in range(max_retries):
                     try:
+                        logger.info(f"📧 Tentative {attempt + 1}/{max_retries} d'envoi email à {user.email}")
                         email_message.send(fail_silently=False)
+                        logger.info(f"✅ Email de réinitialisation envoyé à {user.email} (compte: {user.username})")
                         print(f"✅ Email de réinitialisation envoyé à {user.email} (compte: {user.username})")
+                        email_sent = True
                         break
                     except Exception as send_error:
+                        wait_time = 2 * (attempt + 1)  # 2s, 4s, 6s, 8s, 10s
                         if attempt < max_retries - 1:
-                            print(f"⚠️ Tentative {attempt + 1} échouée, nouvel essai dans 2s...")
-                            time.sleep(2)
+                            logger.warning(f"⚠️ Tentative {attempt + 1} échouée: {send_error}. Nouvel essai dans {wait_time}s...")
+                            print(f"⚠️ Tentative {attempt + 1} échouée, nouvel essai dans {wait_time}s...")
+                            time.sleep(wait_time)
                         else:
+                            logger.error(f"❌ Toutes les tentatives ont échoué: {send_error}")
                             raise send_error
                 
             except Exception as e:
+                logger.error(f"❌ Erreur lors de l'envoi de l'email après {max_retries} tentatives: {e}")
                 print(f"❌ Erreur lors de l'envoi de l'email après {max_retries} tentatives: {e}")
                 import traceback
+                logger.error(traceback.format_exc())
                 print(traceback.format_exc())
         
         except User.DoesNotExist:
