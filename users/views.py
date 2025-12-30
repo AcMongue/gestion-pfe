@@ -505,6 +505,8 @@ def password_reset_request(request):
             
             try:
                 from django.conf import settings
+                import time
+                
                 # Créer un email multipart (texte + HTML)
                 email_message = EmailMultiAlternatives(
                     subject,
@@ -513,11 +515,23 @@ def password_reset_request(request):
                     [user.email]
                 )
                 email_message.attach_alternative(html_content, "text/html")
-                email_message.send(fail_silently=False)
                 
-                print(f"✅ Email de réinitialisation envoyé à {user.email} (compte: {user.username})")
+                # Retry logic : 3 tentatives avec délai
+                max_retries = 3
+                for attempt in range(max_retries):
+                    try:
+                        email_message.send(fail_silently=False)
+                        print(f"✅ Email de réinitialisation envoyé à {user.email} (compte: {user.username})")
+                        break
+                    except Exception as send_error:
+                        if attempt < max_retries - 1:
+                            print(f"⚠️ Tentative {attempt + 1} échouée, nouvel essai dans 2s...")
+                            time.sleep(2)
+                        else:
+                            raise send_error
+                
             except Exception as e:
-                print(f"❌ Erreur lors de l'envoi de l'email: {e}")
+                print(f"❌ Erreur lors de l'envoi de l'email après {max_retries} tentatives: {e}")
                 import traceback
                 print(traceback.format_exc())
         
